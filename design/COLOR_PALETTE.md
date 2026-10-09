@@ -1,6 +1,6 @@
 # Oppor: riset palet warna
 
-Tanggal: 9 Oktober 2026. Status: opsi desain, belum pilihan final pengguna. Larangan pengguna: tidak memakai hijau.
+Tanggal: 9 Oktober 2026. Pilihan pengguna terbaru: **Indigo + Pearl**. Larangan pengguna: tidak memakai hijau. Mockup aplikasi terbaru tersedia di [INDIGO_MOCKUP.md](INDIGO_MOCKUP.md).
 
 Mockup dibuat menggunakan built-in imagegen: [perbandingan tiga palet](oppor-color-directions-v1.png). Gambar adalah konsep visual dan data campaign contoh; hex token di dokumen ini menjadi acuan implementasi karena warna raster tidak dijamin persis.
 
@@ -17,7 +17,7 @@ Mockup dibuat menggunakan built-in imagegen: [perbandingan tiga palet](oppor-col
 | Border dekoratif | `#E2E8F0` | `#E4E4E7` | `#3F3F46` |
 | Teks tombol primary | `#FFFFFF` | `#FFFFFF` | `#18181B` |
 
-Rekomendasi desain: Cobalt + Slate. Canvas terang memudahkan pemindaian daftar reward, aksen biru membedakan tindakan utama, dan sidebar navy memberi struktur. Ini penilaian desain, bukan klaim riset bahwa satu warna menaikkan conversion.
+Rekomendasi awal: Cobalt + Slate. Pengguna kemudian memilih Indigo + Pearl; mockup terbaru menggunakan navigasi terang dan aksen indigo. Ini keputusan desain, bukan klaim bahwa satu warna menaikkan conversion.
 
 Indigo + Pearl adalah alternatif dengan aksen lebih pekat. Amber + Graphite adalah pilihan dark-first dengan tombol amber berteks gelap.
 
