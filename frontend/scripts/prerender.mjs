@@ -1,6 +1,6 @@
 import { readFile, writeFile, mkdir } from "node:fs/promises";
 import { resolve } from "node:path";
-import { render } from "../dist-server/entry-server.js";
+import { render, docPages } from "../dist-server/entry-server.js";
 const template = await readFile("dist/index.html", "utf8");
 const escape = (value) =>
   String(value)
@@ -57,6 +57,7 @@ const routes = [
   "/rewards",
   "/campaigns",
   "/admin",
+  ...docPages.map((page) => (page.slug ? `/docs/${page.slug}` : "/docs")),
   ...campaigns.map((c) => `/campaigns/${c.id}`),
 ];
 let canonical = "https://oppor.fun";
@@ -96,9 +97,20 @@ await writeFile(
 const sitemap = routes.filter(
   (p) =>
     ["/", "/how-it-works", "/privacy", "/terms"].includes(p) ||
+    p === "/docs" ||
+    p.startsWith("/docs/") ||
     /^\/campaigns\/[^/]+$/.test(p),
 );
 const live = render("/").meta.robots.startsWith("index");
+await writeFile(
+  "dist/_redirects",
+  docPages
+    .map((page) => {
+      const route = page.slug ? `/docs/${page.slug}` : "/docs";
+      return `${route} ${route}/index.html 200`;
+    })
+    .join("\n") + "\n/* /200.html 200\n",
+);
 await writeFile(
   "dist/sitemap.xml",
   `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${live ? sitemap.map((p) => `<url><loc>${escape(canonical + p)}</loc></url>`).join("") : ""}</urlset>`,

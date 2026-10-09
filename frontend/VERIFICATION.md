@@ -15,3 +15,7 @@ Verified locally on 2026-10-09 with Node 22.22.2 and installed Google Chrome.
 Screenshots: [desktop](../design/oppor-frontend-desktop.png), [mobile](../design/oppor-frontend-mobile.png). They are captures of the rendered production frontend.
 
 Live HTTP operations were checked with API fixtures, not a funded Arc deployment. No actual token transfer, NFT funding, chain-indexer convergence, live S3 upload, or production operator action was performed. The production backend, storage CORS, verified factory/escrow deployment, and network configuration must be supplied before live use. Public campaign prerender snapshots additionally require `PRERENDER_API_URL`; the default build contains sample data and is deliberately excluded from indexing.
+
+## Documentation workspace
+
+The `/docs` workspace adds 12 English product and developer guides. All 16 browser tests pass, including documentation search, keyboard navigation, section anchors, code copying, mobile menu behavior, and serious/critical accessibility checks. Strict typing and the browser/SSR build pass. All 21 routes are prerendered. Production preview serves Introduction at both `/docs` and `/docs/`, and API overview at `/docs/api-overview`, with JavaScript disabled. Production hydration reports no errors; the 390-pixel mobile document does not overflow. Captures: [documentation desktop](../design/oppor-docs-desktop.png) and [documentation mobile](../design/oppor-docs-mobile.png).

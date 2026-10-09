@@ -37,3 +37,5 @@ export function render(path: string, campaigns: Campaign[] = []) {
     ),
   };
 }
+
+export { docPages } from "./docs/content";

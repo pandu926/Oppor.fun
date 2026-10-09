@@ -58,6 +58,7 @@ Authentication uses an injected EIP-1193 browser wallet and the backend's exact 
 | `/entries`                            | Saved and currently discovered participant entries; campaign-ID recovery and more public pages                                                 |
 | `/rewards`                            | Allocations, claim actions and proof export for discovered/saved entries                                                                       |
 | `/admin`                              | Stats, campaign moderation, users, suspension/restoration, session revocation, audit history, paginated jobs/status filtering                  |
+| `/docs`, `/docs/:guide`               | Dedicated documentation workspace with 12 product and developer guides, full-text search, section navigation, and copyable examples            |
 | `/how-it-works`, `/privacy`, `/terms` | Public product explanations and current data-handling information                                                                              |
 
 The current backend does not expose a global participant-entry feed. Entry and reward screens recover locally remembered campaign IDs and check the currently loaded public catalog in batches of four. They disclose this scope and provide ID import and additional catalog pagination. Search and asset tabs operate on the currently loaded catalog; load more to expand results. Token listings do not imply market-price or value guarantees.
@@ -109,3 +110,7 @@ location /assets/ {
 Use TLS, short HTML caching, and restrictive API/upload CORS. Set a deployment CSP with `default-src 'self'`, `object-src 'none'`, `base-uri 'self'`, `frame-ancestors 'none'`, local font/style sources, and explicit API/RPC/upload connection origins. The prerendered bootstrap and JSON-LD are inline scripts: authorize their exact build hashes or serve them externally; do not add a blanket `unsafe-inline` script allowance. Private pages and evidence must not be edge-cached.
 
 The live adapter is covered by browser API fixtures; no funded Arc deployment was available for an end-to-end onchain transfer in this frontend task. Deploy/configure the verified factory, backend, RPC and storage before enabling real campaigns. Existing internal contract review is not an independent external audit.
+
+## Product documentation
+
+Documentation content lives in `src/docs/content.ts` and uses structured sections for prose, tables, steps, callouts, and code blocks. Add a page to `docPages` to include it in sidebar navigation, search, next/previous links, metadata, and prerender output. The `/docs` layout is independent of the campaign workspace and remains readable without JavaScript. Search is local and does not send queries to a third-party service. Use Ctrl/⌘ K, arrow keys, Enter, and Escape to navigate search.

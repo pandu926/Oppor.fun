@@ -1,5 +1,7 @@
 import { Component, useEffect, type ReactNode } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
+import { Docs } from "./docs/docs";
+import { findDoc } from "./docs/content";
 import { Layout } from "./components/layout";
 import { ErrorState } from "./components/ui";
 import { Discover } from "./pages/discover";
@@ -14,7 +16,9 @@ import type { Campaign } from "./lib/types";
 import { useApp } from "./lib/context";
 import { demo, siteUrl } from "./lib/config";
 export function seo(path: string, campaign?: Campaign) {
+  const doc = findDoc(path);
   const title =
+    doc?.title ||
     campaign?.title ||
     (path === "/"
       ? "Discover campaigns"
@@ -36,13 +40,17 @@ export function seo(path: string, campaign?: Campaign) {
                       ? "My campaigns"
                       : "Campaign");
   const indexable =
-    ["/", "/how-it-works", "/privacy", "/terms"].includes(path) || !!campaign;
+    ["/", "/how-it-works", "/privacy", "/terms"].includes(path) ||
+    !!campaign ||
+    !!doc;
   return {
     title: `${title} · Oppor`,
     description:
+      doc?.description ||
       campaign?.description ||
       "Discover community campaigns on Arc. Complete tasks, submit evidence, and claim creator-funded rewards.",
-    canonical: siteUrl.replace(/\/$/, "") + path,
+    canonical:
+      siteUrl.replace(/\/$/, "") + (doc ? path.replace(/\/$/, "") : path),
     robots: !demo && indexable ? "index,follow" : "noindex,follow",
   };
 }
@@ -80,6 +88,14 @@ function PageMeta() {
     document.getElementById("main")?.focus({ preventScroll: true });
     window.scrollTo(0, 0);
   }, [location.pathname, campaign.data, session]);
+  useEffect(() => {
+    if (location.hash) {
+      const id = decodeURIComponent(location.hash.slice(1));
+      requestAnimationFrame(() =>
+        document.getElementById(id)?.scrollIntoView({ block: "start" }),
+      );
+    }
+  }, [location.pathname, location.hash]);
   return null;
 }
 export class Boundary extends Component<
@@ -106,6 +122,7 @@ export function App() {
     <Boundary>
       <PageMeta />
       <Routes>
+        <Route path="docs/*" element={<Docs />} />
         <Route element={<Layout />}>
           <Route index element={<Discover />} />
           <Route path="campaigns/:id" element={<CampaignDetail />} />

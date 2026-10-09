@@ -1,7 +1,25 @@
 import { defineConfig } from "vite";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 import react from "@vitejs/plugin-react";
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: "documentation-preview-html",
+      configurePreviewServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          const url = new URL(req.url || "/", "http://localhost");
+          if (/^\/docs(?:\/[a-z-]+)?\/?$/.test(url.pathname)) {
+            const route = url.pathname.replace(/\/$/, "");
+            if (existsSync(resolve("dist", route.slice(1), "index.html")))
+              req.url = `${route}/index.html${url.search}`;
+          }
+          next();
+        });
+      },
+    },
+  ],
   server: {
     port: 3000,
     strictPort: true,

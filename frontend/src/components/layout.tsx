@@ -202,6 +202,7 @@ export function Layout() {
         </main>
         <footer className="site-footer">
           <span>© {new Date().getFullYear()} Oppor</span>
+          <Link to="/docs">Documentation</Link>
           <Link to="/privacy">Privacy</Link>
           <Link to="/terms">Terms</Link>
           {demo && <span>Demo environment</span>}

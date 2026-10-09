@@ -25,12 +25,11 @@ const query = new QueryClient({
   },
 });
 const bootstrap = window.__OPPOR__;
+const currentPath = location.pathname.replace(/\/$/, "") || "/";
 const content = (
   <QueryClientProvider client={query}>
     <HydrationBoundary
-      state={
-        bootstrap?.path === location.pathname ? bootstrap.state : undefined
-      }
+      state={bootstrap?.path === currentPath ? bootstrap.state : undefined}
     >
       <BrowserRouter>
         <AppProvider>
@@ -41,6 +40,6 @@ const content = (
   </QueryClientProvider>
 );
 const root = document.getElementById("root")!;
-if (bootstrap?.path === location.pathname && root.hasChildNodes())
+if (bootstrap?.path === currentPath && root.hasChildNodes())
   hydrateRoot(root, content);
 else createRoot(root).render(content);
