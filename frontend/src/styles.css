@@ -1902,3 +1902,12 @@ input::placeholder,
 textarea::placeholder {
   color: #707084;
 }
+.wallet-account-button {
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 7px;
+}
+.dialog > .button + .button {
+  margin-top: 12px;
+}

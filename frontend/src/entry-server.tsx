@@ -5,6 +5,11 @@ import {
   QueryClientProvider,
   dehydrate,
 } from "@tanstack/react-query";
+import {
+  WalletProvider,
+  WalletUIProvider,
+  createWalletConfig,
+} from "./lib/rainbow";
 import { App, seo } from "./app";
 import { AppProvider } from "./lib/context";
 import type { Campaign } from "./lib/types";
@@ -20,13 +25,17 @@ export function render(path: string, campaigns: Campaign[] = []) {
     campaigns.forEach((c) => client.setQueryData(["campaign", c.id], c));
   }
   const html = renderToString(
-    <QueryClientProvider client={client}>
-      <StaticRouter location={path}>
-        <AppProvider>
-          <App />
-        </AppProvider>
-      </StaticRouter>
-    </QueryClientProvider>,
+    <WalletProvider config={createWalletConfig()}>
+      <QueryClientProvider client={client}>
+        <WalletUIProvider>
+          <StaticRouter location={path}>
+            <AppProvider>
+              <App />
+            </AppProvider>
+          </StaticRouter>
+        </WalletUIProvider>
+      </QueryClientProvider>
+    </WalletProvider>,
   );
   return {
     html,

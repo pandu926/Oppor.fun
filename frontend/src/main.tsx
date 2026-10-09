@@ -6,6 +6,8 @@ import {
   HydrationBoundary,
   type DehydratedState,
 } from "@tanstack/react-query";
+import "@rainbow-me/rainbowkit/styles.css";
+import { WalletProvider, WalletUIProvider } from "./lib/rainbow";
 import { App } from "./app";
 import { AppProvider } from "./lib/context";
 import "@fontsource-variable/inter";
@@ -27,17 +29,21 @@ const query = new QueryClient({
 const bootstrap = window.__OPPOR__;
 const currentPath = location.pathname.replace(/\/$/, "") || "/";
 const content = (
-  <QueryClientProvider client={query}>
-    <HydrationBoundary
-      state={bootstrap?.path === currentPath ? bootstrap.state : undefined}
-    >
-      <BrowserRouter>
-        <AppProvider>
-          <App />
-        </AppProvider>
-      </BrowserRouter>
-    </HydrationBoundary>
-  </QueryClientProvider>
+  <WalletProvider>
+    <QueryClientProvider client={query}>
+      <HydrationBoundary
+        state={bootstrap?.path === currentPath ? bootstrap.state : undefined}
+      >
+        <WalletUIProvider>
+          <BrowserRouter>
+            <AppProvider>
+              <App />
+            </AppProvider>
+          </BrowserRouter>
+        </WalletUIProvider>
+      </HydrationBoundary>
+    </QueryClientProvider>
+  </WalletProvider>
 );
 const root = document.getElementById("root")!;
 if (bootstrap?.path === currentPath && root.hasChildNodes())

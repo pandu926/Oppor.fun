@@ -210,6 +210,8 @@ test("live browser wallet signs the exact challenge and sends CSRF on mutations"
   let mutation = false;
   await page.addInitScript(() => {
     window.ethereum = {
+      on: () => {},
+      removeListener: () => {},
       request: async ({
         method,
         params,
@@ -265,7 +267,10 @@ test("live browser wallet signs the exact challenge and sends CSRF on mutations"
   await page
     .getByRole("button", { name: "Connect wallet", exact: true })
     .click();
-  await page.getByRole("button", { name: "Connect browser wallet" }).click();
+  await page
+    .getByRole("button", { name: "Browser wallet", exact: true })
+    .click();
+  await page.getByRole("button", { name: "Sign in to Oppor" }).click();
   await expect(page.getByLabel("Disconnect wallet")).toBeVisible();
   expect(
     await page.evaluate(

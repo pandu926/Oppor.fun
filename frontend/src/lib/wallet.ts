@@ -24,11 +24,6 @@ export type Provider = EIP1193Provider & {
     callback: (...args: unknown[]) => void,
   ) => void;
 };
-declare global {
-  interface Window {
-    ethereum?: Provider;
-  }
-}
 export const publicClient = createPublicClient({
   chain,
   transport: http(chain.rpcUrls.default.http[0], { timeout: 15000 }),

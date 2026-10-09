@@ -6,6 +6,14 @@ import {
   useRef,
   type ReactNode,
 } from "react";
+import { useAccount, useDisconnect } from "wagmi";
+import { getAccount, watchAccount } from "wagmi/actions";
+import {
+  useConnectModal,
+  useAccountModal,
+  useChainModal,
+} from "@rainbow-me/rainbowkit";
+import { walletConfig } from "./rainbow";
 import { useQueryClient } from "@tanstack/react-query";
 import { demo, chain } from "./config";
 import { post, request, setCsrf } from "./api";
@@ -18,16 +26,63 @@ type AppContextValue = {
   connect: () => void;
   logout: () => Promise<void>;
   notify: (message: string) => void;
+  manageWallet: () => void;
+  changeNetwork: () => void;
 };
 const AppContext = createContext<AppContextValue>(null!);
 export const useApp = () => useContext(AppContext);
 export function AppProvider({ children }: { children: ReactNode }) {
   const query = useQueryClient();
+  const account = useAccount();
+  const { disconnectAsync } = useDisconnect();
+  const { openConnectModal } = useConnectModal();
+  const { openAccountModal } = useAccountModal();
+  const { openChainModal } = useChainModal();
+  const requested = useRef(false);
+  const generation = useRef(0);
+  const currentSession = useRef<Session | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [toast, setToast] = useState("");
+  currentSession.current = session;
+  useEffect(() => {
+    if (!demo && requested.current && account.isConnected) {
+      requested.current = false;
+      setOpen(true);
+    }
+  }, [account.isConnected]);
+  useEffect(
+    () =>
+      watchAccount(walletConfig, {
+        onChange(next, previous) {
+          if (
+            next.address !== previous.address ||
+            next.chainId !== previous.chainId ||
+            next.status !== previous.status
+          ) {
+            generation.current++;
+            const active = currentSession.current;
+            if (
+              active &&
+              !demo &&
+              (next.address?.toLowerCase() !== active.wallet.toLowerCase() ||
+                next.chainId !== chain.id ||
+                next.status !== "connected")
+            ) {
+              setSession(null);
+              const revoke = post("/auth/logout");
+              setCsrf(null);
+              query.clear();
+              void revoke.catch(() => {});
+              setToast("Wallet changed. Sign in again to continue.");
+            }
+          }
+        },
+      }),
+    [query],
+  );
   useEffect(() => {
     if (demo) loadDemo();
   }, []);
@@ -38,44 +93,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [toast]);
   async function logout() {
     const previous = session;
+    generation.current++;
+    requested.current = false;
+    setOpen(false);
     setSession(null);
     query.clear();
     const revocation =
       previous && !demo ? post("/auth/logout") : Promise.resolve();
     setCsrf(null);
+    if (!demo) await disconnectAsync().catch(() => {});
     try {
       await revocation;
     } catch {
       /* Local logout still clears privileged UI. */
     }
   }
-  useEffect(() => {
-    const provider = session?.provider;
-    if (!provider?.on) return;
-    const changed = () => {
-      void logout();
-      setToast("Wallet changed. Connect and sign in again.");
-    };
-    provider.on("accountsChanged", changed);
-    provider.on("chainChanged", changed);
-    return () => {
-      provider.removeListener?.("accountsChanged", changed);
-      provider.removeListener?.("chainChanged", changed);
-    };
-  }, [session]);
   async function connectWallet() {
     setBusy(true);
     setError("");
     try {
-      const provider = window.ethereum;
+      const connected = getAccount(walletConfig);
+      const provider = (await connected.connector?.getProvider()) as
+        Provider | undefined;
       if (!provider)
-        throw new Error(
-          "Install an Ethereum-compatible browser wallet to connect.",
-        );
+        throw new Error("Choose and connect a wallet before signing in.");
       const client = walletClient(provider);
-      const [wallet] = await client.requestAddresses();
+      const [wallet] = await client.getAddresses();
       if (!wallet) throw new Error("No wallet account selected.");
       if ((await client.getChainId()) !== chain.id) await switchChain(provider);
+      const attempt = generation.current;
       const challenge = await post<{ message: string; expires_at: string }>(
         "/auth/challenge",
         { wallet, chain_id: String(chain.id) },
@@ -84,10 +130,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
         account: wallet,
         message: challenge.message,
       });
+      const [addresses, network] = await Promise.all([
+        client.getAddresses(),
+        client.getChainId(),
+      ]);
+      if (
+        attempt !== generation.current ||
+        addresses[0]?.toLowerCase() !== wallet.toLowerCase() ||
+        network !== chain.id
+      )
+        throw new Error("Wallet changed while signing. Start again.");
       const verified = await post<SessionResult>("/auth/verify", {
         message: challenge.message,
         signature,
       });
+      if (
+        attempt !== generation.current ||
+        verified.wallet.toLowerCase() !== wallet.toLowerCase()
+      ) {
+        setCsrf(verified.csrf_token);
+        const revoke = post("/auth/logout");
+        setCsrf(null);
+        void revoke.catch(() => {});
+        throw new Error("Wallet changed during verification. Start again.");
+      }
       setCsrf(verified.csrf_token);
       let admin = false;
       try {
@@ -95,6 +161,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
         admin = true;
       } catch {
         /* Admin is granted only by the server. */
+      }
+      if (attempt !== generation.current) {
+        const revoke = post("/auth/logout");
+        setCsrf(null);
+        void revoke.catch(() => {});
+        throw new Error("Wallet changed during sign-in. Start again.");
       }
       setSession({ wallet: verified.wallet, admin, provider });
       setOpen(false);
@@ -112,8 +184,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         session,
         connect: () => {
           setError("");
-          setOpen(true);
+          if (demo || account.isConnected) setOpen(true);
+          else {
+            requested.current = true;
+            openConnectModal?.();
+          }
         },
+        manageWallet: () => openAccountModal?.(),
+        changeNetwork: () => openChainModal?.(),
         logout,
         notify: setToast,
       }}
@@ -166,7 +244,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
               disabled={busy}
               onClick={() => void connectWallet()}
             >
-              {busy ? "Waiting for wallet…" : "Connect browser wallet"}
+              {busy ? "Waiting for wallet…" : "Sign in to Oppor"}
+            </button>
+          )}
+          {!demo && (
+            <button
+              className="button outline wide"
+              disabled={busy}
+              onClick={() => {
+                setOpen(false);
+                void disconnectAsync()
+                  .then(() => {
+                    requested.current = true;
+                    openConnectModal?.();
+                  })
+                  .catch(() => setError("Unable to disconnect wallet."));
+              }}
+            >
+              Choose another wallet
+            </button>
+          )}
+          {demo && (
+            <button
+              className="button outline wide"
+              onClick={() => {
+                setOpen(false);
+                openConnectModal?.();
+              }}
+            >
+              Connect a wallet
             </button>
           )}
           <p className="fineprint">

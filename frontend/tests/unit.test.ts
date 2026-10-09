@@ -1,9 +1,15 @@
 import { encodeFunctionData } from "viem";
 import { escrowAbi } from "../src/lib/abi";
-import { test } from "node:test";
+import { test, mock } from "node:test";
 import assert from "node:assert/strict";
 import { secureUrl } from "../src/lib/config";
-import { uint256, validatePrepared } from "../src/lib/wallet";
+import {
+  uint256,
+  validatePrepared,
+  executePrepared,
+  publicClient,
+  type Provider,
+} from "../src/lib/wallet";
 import { samples } from "../src/lib/demo";
 import { decimalLabel } from "../src/lib/reward";
 import type { PreparedTransaction } from "../src/lib/types";
@@ -109,4 +115,70 @@ test("token approvals bind spender and reject excessive amounts", () => {
   assert.throws(() =>
     validatePrepared({ ...approval, data: wrong }, wallet, campaign, "APPROVE"),
   );
+});
+
+test("connector provider broadcasts only validated transactions and requires a successful receipt", async () => {
+  const hash = ("0x" + "b".repeat(64)) as `0x${string}`;
+  let sent = 0;
+  let account = wallet;
+  const provider = {
+    request: async ({
+      method,
+      params,
+    }: {
+      method: string;
+      params?: unknown[];
+    }) => {
+      if (method === "eth_accounts") return [account];
+      if (method === "eth_chainId") return "0x4cef52";
+      if (method === "eth_sendTransaction") {
+        sent++;
+        const body = params![0] as {
+          from: string;
+          to: string;
+          data: string;
+          value: string;
+        };
+        assert.equal(body.from.toLowerCase(), wallet);
+        assert.equal(body.to.toLowerCase(), tx.to);
+        assert.equal(body.data, tx.data);
+        assert.equal(body.value, "0x0");
+        return hash;
+      }
+      throw new Error("Unexpected provider request: " + method);
+    },
+  } as unknown as Provider;
+  const receipt = mock.method(
+    publicClient,
+    "waitForTransactionReceipt",
+    async ({ hash: received }: { hash: string }) => {
+      assert.equal(received, hash);
+      return { status: "success" };
+    },
+  );
+  try {
+    let broadcast: string | undefined;
+    assert.equal(
+      await executePrepared(provider, tx, wallet, campaign, "FUND", (h) => {
+        broadcast = h;
+      }),
+      hash,
+    );
+    assert.equal(broadcast, hash);
+    assert.equal(sent, 1);
+    account = "0x2222222222222222222222222222222222222222";
+    await assert.rejects(
+      executePrepared(provider, tx, wallet, campaign, "FUND"),
+      /Wallet or network changed/,
+    );
+    assert.equal(sent, 1);
+    account = wallet;
+    receipt.mock.mockImplementation(async () => ({ status: "reverted" }));
+    await assert.rejects(
+      executePrepared(provider, tx, wallet, campaign, "FUND"),
+      /Transaction reverted/,
+    );
+  } finally {
+    receipt.mock.restore();
+  }
 });

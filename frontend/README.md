@@ -1,6 +1,6 @@
 # Oppor frontend
 
-Vite 8, React 19, TypeScript, React Router, TanStack Query, and viem. The desktop marketplace follows [the approved indigo reference](../design/oppor-indigo-marketplace-v2.png). SVG campaign artwork is rendered in the interface; the mockup is not used as a page background.
+Vite 8, React 19, TypeScript, React Router, TanStack Query, RainbowKit, wagmi, and viem. The desktop marketplace follows [the approved indigo reference](../design/oppor-indigo-marketplace-v2.png). SVG campaign artwork is rendered in the interface; the mockup is not used as a page background.
 
 ## Run locally
 
@@ -28,23 +28,24 @@ Tests use Chromium. The configuration uses installed Google Chrome when availabl
 
 Copy `.env.example` to `.env.local`, set `VITE_DATA_MODE=live`, and restart Vite. Public variables are compiled into the build: **never put secrets or signing keys in them**.
 
-| Variable               | Purpose                                                                |
-| ---------------------- | ---------------------------------------------------------------------- |
-| `VITE_DATA_MODE`       | `demo` by default; `live` enables API and browser wallet operations    |
-| `VITE_API_BASE_URL`    | `/v1` for a same-origin reverse proxy; absolute HTTPS URLs also work   |
-| `VITE_SITE_URL`        | Canonical public origin used for SEO                                   |
-| `VITE_CHAIN_ID`        | Must match the backend's configured deployment                         |
-| `VITE_RPC_URL`         | Public HTTPS RPC, with browser CORS                                    |
-| `VITE_EXPLORER_URL`    | HTTPS explorer origin                                                  |
-| `VITE_FACTORY_ADDRESS` | Verified deployed factory; required to authorize creation transactions |
-| `VITE_USDC_ADDRESS`    | Verified ERC-20 USDC contract for the configured network               |
-| `PRERENDER_API_URL`    | Optional server-only HTTPS public API for campaign HTML snapshots      |
+| Variable                        | Purpose                                                                |
+| ------------------------------- | ---------------------------------------------------------------------- |
+| `VITE_DATA_MODE`                | `demo` by default; `live` enables API and browser wallet operations    |
+| `VITE_API_BASE_URL`             | `/v1` for a same-origin reverse proxy; absolute HTTPS URLs also work   |
+| `VITE_SITE_URL`                 | Canonical public origin used for SEO                                   |
+| `VITE_CHAIN_ID`                 | Must match the backend's configured deployment                         |
+| `VITE_RPC_URL`                  | Public HTTPS RPC, with browser CORS                                    |
+| `VITE_EXPLORER_URL`             | HTTPS explorer origin                                                  |
+| `VITE_FACTORY_ADDRESS`          | Verified deployed factory; required to authorize creation transactions |
+| `VITE_USDC_ADDRESS`             | Verified ERC-20 USDC contract for the configured network               |
+| `VITE_WALLETCONNECT_PROJECT_ID` | Public Reown project ID; enables WalletConnect QR and mobile wallets   |
+| `PRERENDER_API_URL`             | Optional server-only HTTPS public API for campaign HTML snapshots      |
 
 The default is Arc Testnet, chain ID 5042002. RPC and explorer defaults follow [Arc's connection reference](https://docs.arc.io/arc/references/connect-to-arc). Arc's [USDC ERC-20 interface](https://docs.arc.io/integrate/infrastructure/indexing-events) uses six decimals; native gas USDC uses eighteen. Arbitrary ERC-20 metadata is read from the configured RPC and cached; if unavailable, the interface shows base units instead of guessing decimals. The create form accepts exact integer base units, supports all three asset kinds, and validates deadline order, NFT inventory, required tasks, capacity, and fixed-pool arithmetic.
 
 For local development, Vite proxies `/v1` to `http://127.0.0.1:8080`. Configure backend `PUBLIC_ORIGIN` and allowed origins to match the frontend host exactly. `localhost` and `127.0.0.1` are different origins. Configure object-storage POST CORS for that same origin. HTTP RPC, API, explorer, and upload URLs are accepted only on localhost in development; production requires HTTPS.
 
-Authentication uses an injected EIP-1193 browser wallet and the backend's exact sign-in message. WalletConnect/mobile deep-link connectors are not included. The HttpOnly session cookie is accompanied by an in-memory CSRF token. Reconnect after a page reload to obtain a fresh authorized session. Wallet/account/network changes clear the session UI and cached private data. Admin access is granted only after `/admin/me` authorizes an operator; a role cannot be enabled in browser storage. Expired admin freshness requires reconnecting and signing again.
+RainbowKit handles wallet selection and connection; the backend's exact sign-in message separately authorizes an Oppor session. Browser wallets work without a relay account. To enable WalletConnect QR and mobile wallets, set `VITE_WALLETCONNECT_PROJECT_ID` to your public 32-character Reown/WalletConnect project ID and allow your application origins in that project dashboard. Without this setting only the browser-wallet connector is offered; no shared or invented project ID is used. A connected wallet alone does not grant creator or admin access. Transactions use the selected connector's EIP-1193 provider, including WalletConnect, rather than assuming `window.ethereum`. The HttpOnly session cookie is accompanied by an in-memory CSRF token. Reconnect after a page reload to obtain a fresh authorized session. Wallet/account/network changes clear the session UI and cached private data. Admin access is granted only after `/admin/me` authorizes an operator; a role cannot be enabled in browser storage. Expired admin freshness requires reconnecting and signing again.
 
 ## Implemented routes
 
@@ -114,3 +115,5 @@ The live adapter is covered by browser API fixtures; no funded Arc deployment wa
 ## Product documentation
 
 Documentation content lives in `src/docs/content.ts` and uses structured sections for prose, tables, steps, callouts, and code blocks. Add a page to `docPages` to include it in sidebar navigation, search, next/previous links, metadata, and prerender output. The `/docs` layout is independent of the campaign workspace and remains readable without JavaScript. Search is local and does not send queries to a third-party service. Use Ctrl/⌘ K, arrow keys, Enter, and Escape to navigate search.
+
+Wallet dependencies are pinned to RainbowKit 2.2.11 and wagmi 2.19.5. Transitive overrides select patched `ws`, `uuid`, and `decode-uri-component` versions; retain the build and wallet regression checks when updating them. A production CSP must also allow the configured WalletConnect relay HTTPS/WSS endpoints when that connector is enabled.

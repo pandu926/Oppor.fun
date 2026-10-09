@@ -42,7 +42,7 @@ export function Layout() {
     document.querySelector<HTMLButtonElement>(".mobile-close")?.focus();
     return () => document.removeEventListener("keydown", key);
   }, [mobile]);
-  const { session, connect, logout } = useApp();
+  const { session, connect, logout, manageWallet } = useApp();
   const location = useLocation();
   const current =
     location.pathname === "/"
@@ -175,9 +175,13 @@ export function Layout() {
             </Link>
             {session ? (
               <>
-                <span className="wallet-label">
+                <button
+                  className="wallet-label wallet-account-button"
+                  onClick={manageWallet}
+                  aria-label="Wallet account"
+                >
                   {demo ? "Demo wallet" : shorten(session.wallet)}
-                </span>
+                </button>
                 <button
                   className="icon-button"
                   aria-label="Disconnect wallet"
