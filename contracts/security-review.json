@@ -1,0 +1,22 @@
+{
+  "analyzer": "slither-analyzer 0.11.5",
+  "source_sha256": {
+    "CampaignEscrow.sol": "95d17a172a370f9044636bd52d8d3e765c428ea42970745e5379c47ef2d1def6",
+    "CampaignFactory.sol": "f0a9dea0914ec649a4a12d6e344e8206ee4ed33e13ca936e1a36137e3f553b79",
+    "CampaignTypes.sol": "56575d90948cdd726efcc78350ba3c0b21ad79b1a403b58e0a95857c7d272ff9"
+  },
+  "reviewed_medium_findings": [
+    {
+      "check": "reentrancy-no-eth",
+      "impact": "Medium",
+      "function": "fundERC721",
+      "reason": "The analyzer treats writes in the next bounded iteration as following an external call. The full funding function is nonReentrant, all IDs are marked before their own transfer, and the only unguarded receiver consumes an exact token/operator/from/ID/quantity deposit context. The creator-collection callback test proves the guard rejects a creator-authorized nested activation."
+    },
+    {
+      "check": "reentrancy-no-eth",
+      "impact": "Medium",
+      "function": "_refund",
+      "reason": "Only cancel and sweepRemaining call this private function, under nonReentrant, after terminal state is set. Each NFT is marked delivered before its own external transfer. The loop is bounded to 100 deposited NFTs. Receiver rejection tests verify that state and delivery flags roll back atomically."
+    }
+  ]
+}

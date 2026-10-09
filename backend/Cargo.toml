@@ -1,0 +1,74 @@
+[package]
+name = "oppor-backend"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.97"
+license = "MIT"
+publish = false
+
+[lib]
+name = "oppor_backend"
+path = "src/lib.rs"
+
+[[bin]]
+name = "oppor-api"
+path = "src/main.rs"
+
+[[bin]]
+name = "oppor-worker"
+path = "src/bin/worker.rs"
+
+[dependencies]
+aes-gcm = "=0.10.3"
+alloy-primitives = { version = "=1.7.3", features = ["serde", "k256"] }
+alloy-sol-types = "=1.7.3"
+anyhow = "1.0"
+axum = { version = "=0.8.9", features = ["macros"] }
+base64 = "0.22"
+bytes = "1"
+chrono = { version = "0.4", features = ["serde"] }
+hex = "0.4"
+hmac = "0.12"
+futures-util = "0.3"
+http = "1"
+ipnet = "2"
+object_store = { version = "=0.14.2", default-features = false, features = ["aws", "tokio"] }
+rand = "0.8"
+rustls = { version = "0.23", default-features = false, features = ["std", "aws_lc_rs"] }
+redis = { version = "0.32", features = ["tokio-rustls-comp", "connection-manager"] }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream", "multipart"] }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+serde_jcs = "0.1"
+sha2 = "0.10"
+siwe = { version = "0.6", default-features = false }
+sqlx = { version = "=0.8.6", default-features = false, features = ["runtime-tokio", "tls-rustls-ring", "postgres", "uuid", "chrono", "json", "migrate", "macros"] }
+subtle = "2.6"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread", "signal", "net", "time", "fs", "sync"] }
+tower = { version = "0.5", features = ["util", "limit"] }
+tower-http = { version = "=0.6.11", features = ["cors", "trace", "request-id", "limit", "catch-panic"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+url = "2"
+uuid = { version = "1", features = ["v4", "serde"] }
+zeroize = { version = "1", features = ["derive"] }
+
+[dev-dependencies]
+http-body-util = "0.1"
+k256 = "0.13"
+proptest = "1"
+tempfile = "3"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = "symbols"
+panic = "unwind"
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+dbg_macro = "deny"
+todo = "deny"

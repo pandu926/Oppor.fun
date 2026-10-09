@@ -1,0 +1,26 @@
+name: oppor-backend-tests
+services:
+  postgres:
+    image: postgres:17.9-bookworm
+    environment:
+      POSTGRES_USER: oppor
+      POSTGRES_PASSWORD: oppor-local-tests
+      POSTGRES_DB: oppor
+    ports: ["127.0.0.1:55491:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oppor -d oppor"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  redis:
+    image: redis:8-alpine
+    ports: ["127.0.0.1:56389:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+  storage:
+    image: motoserver/moto:5.1.16
+    ports: ["127.0.0.1:59009:5000"]
+    # Local integration fixture only; this is not a production storage deployment.
