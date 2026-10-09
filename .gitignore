@@ -18,3 +18,9 @@ contracts/.analysis-venv/
 contracts/build-sizes.txt
 contracts/slither-report.json
 /cache/
+
+frontend/node_modules/
+frontend/dist/
+frontend/dist-server/
+frontend/test-results/
+frontend/playwright-report/

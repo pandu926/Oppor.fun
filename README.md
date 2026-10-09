@@ -2,6 +2,7 @@
 
 Token promotion campaigns with creator-funded escrow rewards, manual evidence review, raffle or all-eligible allocation, and recipient-initiated claims.
 
+- [Implemented Vite + React frontend](frontend/README.md)
 - [Indigo marketplace mockup](design/INDIGO_MOCKUP.md)
 - [Implemented Solidity factory and escrow](contracts/README.md)
 - [Internal contract audit and remaining risks](contracts/AUDIT.md)
