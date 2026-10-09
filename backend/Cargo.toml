@@ -56,7 +56,7 @@ zeroize = { version = "1", features = ["derive"] }
 
 [dev-dependencies]
 http-body-util = "0.1"
-k256 = "0.13"
+k256 = "0.14"
 proptest = "1"
 tempfile = "3"
 
