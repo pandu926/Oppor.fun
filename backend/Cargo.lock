@@ -2488,7 +2488,7 @@ dependencies = [
  "k256",
  "object_store",
  "proptest",
- "rand 0.8.8",
+ "rand 0.10.3",
  "redis",
  "reqwest 0.12.28",
  "rustls",
