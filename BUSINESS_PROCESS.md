@@ -1,7 +1,7 @@
 # Proses Bisnis Platform Campaign Token
 
 Tanggal: 9 Oktober 2026  
-Nama kerja: **Oppor** (`oppor.fun`), belum ditetapkan sebagai nama final.
+Nama kerja: **Oppor** (`oppai.fun`), belum ditetapkan sebagai nama final.
 
 ## 1. Konsep
 

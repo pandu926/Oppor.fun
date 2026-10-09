@@ -1,7 +1,7 @@
 import { defineChain } from "viem";
 const env = import.meta.env || {};
 export const demo = env.VITE_DATA_MODE !== "live";
-export const siteUrl = env.VITE_SITE_URL || "https://oppor.fun";
+export const siteUrl = env.VITE_SITE_URL || "https://oppai.fun";
 export const apiBase = env.VITE_API_BASE_URL || "/v1";
 export function secureUrl(value: string, local = false): string {
   const u = new URL(value);
