@@ -1,23 +1,21 @@
 # VPS and domain configuration
 
-The application's canonical domain is `https://oppai.fun`. The separate DNS hostname requested for the VPS is `oppee.fun`.
+The application's canonical domain and VPS DNS hostname are `oppor.fun`.
 
 | Setting               | Value                                           |
 | --------------------- | ----------------------------------------------- |
 | VPS hostname          | `vmi3182679`                                    |
 | Public IPv4           | `161.97.103.125`                                |
-| Application origin    | `https://oppai.fun`                             |
-| Requested DNS records | `oppee.fun`, `www.oppee.fun` → `161.97.103.125` |
+| Application origin    | `https://oppor.fun`                             |
+| Requested DNS records | `oppor.fun`, `www.oppor.fun` → `161.97.103.125` |
 
 ## Current DNS status
 
-The supplied Cloudflare account token was verified as active. Its accessible zones include `oppor.fun`, but do not include `oppee.fun` or `oppai.fun`. Public DNS returned NXDOMAIN for `oppee.fun`. `oppai.fun` currently delegates to DigitalOcean nameservers (`ns1.digitalocean.com`, `ns2.digitalocean.com`, `ns3.digitalocean.com`). No records for an alternative spelling were changed.
-
-The requested DNS cannot become active through this Cloudflare account until the exact domain is registered and added as a zone, with its registrar nameservers delegated to Cloudflare. Alternatively, update `oppai.fun` at its current authoritative DNS provider. Registering a domain and changing registrar delegation require that domain owner's access; an API token alone does not establish ownership.
+The supplied Cloudflare account token was verified as active. The account has two active zones: `oppor.fun` and `frostkingdoms.xyz`. The project's domain is `oppor.fun`; earlier spellings in the conversation were typos. The apex `oppor.fun` and `www.oppor.fun` now have DNS-only A records pointing to `161.97.103.125` (TTL 300 seconds). The apex parking CNAME was replaced. The wildcard parking record remains unchanged. Only the project's apex and `www` DNS records are managed by the script.
 
 ## Apply the prepared records
 
-The credentials supplied for this server are stored outside Git at `/root/.config/oppai/cloudflare.json`, readable only by root. The repository contains no bearer token or R2 secret. The script verifies the exact zone, account, active delegation, and conflicting records before writing. It never edits mail records or records for other names.
+The credentials supplied for this server are stored outside Git at `/root/.config/oppor/cloudflare.json`, readable only by root. The repository contains no bearer token or R2 secret. The script verifies the exact zone, account, active delegation, and conflicting records before writing. It never edits mail records or records for other names.
 
 ```sh
 # Read-only plan; fails safely if the requested zone is unavailable.
@@ -30,7 +28,7 @@ node ops/sync-dns.mjs --apply
 
 ## Application configuration
 
-For the frontend, set `VITE_SITE_URL=https://oppai.fun` before building. For the backend, set both `PUBLIC_ORIGIN` and `ALLOWED_ORIGINS` to `https://oppai.fun`. Set storage CORS to the same origin and configure trusted reverse proxy addresses explicitly. The application's default canonical URLs and wallet metadata already use this domain.
+For the frontend, set `VITE_SITE_URL=https://oppor.fun` before building. For the backend, set both `PUBLIC_ORIGIN` and `ALLOWED_ORIGINS` to `https://oppor.fun`. Set storage CORS to the same origin and configure trusted reverse proxy addresses explicitly. The application's default canonical URLs and wallet metadata already use this domain.
 
 This VPS already serves other applications on ports 80 and 443 through `cashtokens-nginx`. Add an isolated virtual host to the existing reverse proxy; do not stop or replace that service. Serve `frontend/dist`, preserve the prerendered route files, and proxy `/v1` to the configured Oppor backend. Verified contract deployment addresses, persistent backend services, and origin TLS are still required for real campaign transactions.
 

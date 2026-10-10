@@ -5,11 +5,11 @@ import { isIP } from "node:net";
 const credentials = JSON.parse(
   await readFile(
     process.env.CLOUDFLARE_CREDENTIALS_FILE ||
-      "/root/.config/oppai/cloudflare.json",
+      "/root/.config/oppor/cloudflare.json",
     "utf8",
   ),
 );
-const zoneName = process.env.DNS_ZONE || "oppee.fun";
+const zoneName = process.env.DNS_ZONE || "oppor.fun";
 const address = process.env.VPS_IPV4 || "161.97.103.125";
 if (
   !/^(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/i.test(zoneName) ||
@@ -50,8 +50,16 @@ for (const name of [zoneName, "www." + zoneName]) {
   const records = await api(
     `/zones/${zone.id}/dns_records?name=${encodeURIComponent(name)}`,
   );
-  const conflicts = records.filter((r) => ["CNAME", "AAAA"].includes(r.type));
-  const existing = records.filter((r) => r.type === "A");
+  const conflicts = records.filter(
+    (r) =>
+      r.type === "AAAA" ||
+      (r.type === "CNAME" && r.content !== "pixie.porkbun.com"),
+  );
+  const existing = records.filter(
+    (r) =>
+      r.type === "A" ||
+      (r.type === "CNAME" && r.content === "pixie.porkbun.com"),
+  );
   if (conflicts.length || existing.length > 1)
     throw new Error(
       `Conflicting records for ${name}; resolve them before applying.`,
@@ -62,7 +70,7 @@ for (const name of [zoneName, "www." + zoneName]) {
     content: address,
     ttl: 300,
     proxied: false,
-    comment: "Oppai VPS origin",
+    comment: "Oppor VPS origin",
   };
   if (existing[0]?.content === address && existing[0]?.proxied === false) {
     console.log(`${name}: already configured`);

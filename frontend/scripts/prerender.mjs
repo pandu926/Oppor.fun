@@ -60,7 +60,7 @@ const routes = [
   ...docPages.map((page) => (page.slug ? `/docs/${page.slug}` : "/docs")),
   ...campaigns.map((c) => `/campaigns/${c.id}`),
 ];
-let canonical = "https://oppai.fun";
+let canonical = "https://oppor.fun";
 for (const path of routes) {
   const { html, state, meta } = render(path, campaigns);
   canonical = new URL(meta.canonical).origin;
