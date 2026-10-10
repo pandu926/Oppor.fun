@@ -17,6 +17,7 @@ if (
 )
   throw new Error("Invalid DNS zone or IPv4 address.");
 const apply = process.argv.includes("--apply");
+const proxied = process.env.DNS_PROXIED !== "false";
 async function api(path, method = "GET", body) {
   const response = await fetch("https://api.cloudflare.com/client/v4" + path, {
     method,
@@ -68,11 +69,11 @@ for (const name of [zoneName, "www." + zoneName]) {
     type: "A",
     name,
     content: address,
-    ttl: 300,
-    proxied: false,
+    ttl: proxied ? 1 : 300,
+    proxied,
     comment: "Oppor VPS origin",
   };
-  if (existing[0]?.content === address && existing[0]?.proxied === false) {
+  if (existing[0]?.content === address && existing[0]?.proxied === proxied) {
     console.log(`${name}: already configured`);
     continue;
   }

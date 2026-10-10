@@ -11,7 +11,7 @@ The application's canonical domain and VPS DNS hostname are `oppor.fun`.
 
 ## Current DNS status
 
-The supplied Cloudflare account token was verified as active. The account has two active zones: `oppor.fun` and `frostkingdoms.xyz`. The project's domain is `oppor.fun`; earlier spellings in the conversation were typos. The apex `oppor.fun` and `www.oppor.fun` now have DNS-only A records pointing to `161.97.103.125` (TTL 300 seconds). The apex parking CNAME was replaced. The wildcard parking record remains unchanged. Only the project's apex and `www` DNS records are managed by the script.
+The supplied Cloudflare account token was verified as active. The account has two active zones: `oppor.fun` and `frostkingdoms.xyz`. The project's domain is `oppor.fun`; earlier spellings in the conversation were typos. The apex `oppor.fun` and `www.oppor.fun` now have proxied A records pointing to `161.97.103.125` (automatic TTL). The apex parking CNAME was replaced. The wildcard parking record remains unchanged. Only the project's apex and `www` DNS records are managed by the script.
 
 ## Apply the prepared records
 
@@ -24,12 +24,23 @@ node ops/sync-dns.mjs
 node ops/sync-dns.mjs --apply
 ```
 
-`DNS_ZONE`, `VPS_IPV4`, and `CLOUDFLARE_CREDENTIALS_FILE` override the inputs. The initial records are DNS-only. Enable Cloudflare proxying only after the origin has working TLS and a virtual host for the exact domain.
+`DNS_ZONE`, `VPS_IPV4`, and `CLOUDFLARE_CREDENTIALS_FILE` override the inputs. Records are proxied by default to use Cloudflare Universal SSL. `DNS_PROXIED=false` is available for diagnostics but disables Cloudflare edge TLS; the origin certificate is trusted by Cloudflare rather than public browsers. Keep proxying enabled for the deployed site.
 
 ## Application configuration
 
 For the frontend, set `VITE_SITE_URL=https://oppor.fun` before building. For the backend, set both `PUBLIC_ORIGIN` and `ALLOWED_ORIGINS` to `https://oppor.fun`. Set storage CORS to the same origin and configure trusted reverse proxy addresses explicitly. The application's default canonical URLs and wallet metadata already use this domain.
 
-This VPS already serves other applications on ports 80 and 443 through `cashtokens-nginx`. Add an isolated virtual host to the existing reverse proxy; do not stop or replace that service. Serve `frontend/dist`, preserve the prerendered route files, and proxy `/v1` to the configured Oppor backend. Verified contract deployment addresses, persistent backend services, and origin TLS are still required for real campaign transactions.
+The frontend is deployed through `ops/compose.web.yml` as `oppor-web-web-1`, with automatic restart and a health check. It serves the production `frontend/dist` build through private port 18820. The shared `cashtokens-nginx` reverse proxy has dedicated virtual hosts from `ops/nginx/origin.conf`, loaded without restarting other applications.
+
+Cloudflare Universal SSL is active for `oppor.fun` and `*.oppor.fun`. The zone uses **Full (strict)** encryption and **Always Use HTTPS**. A Cloudflare Origin CA certificate for `oppor.fun` and `www.oppor.fun` is installed at the reverse proxy; it expires on 10 October 2027. Private key material is stored outside Git and is readable only by root. Renew the origin certificate before that date. HTTP redirects to HTTPS; `www` redirects to the canonical apex.
+
+```sh
+docker compose -f ops/compose.web.yml up -d
+docker compose -f ops/compose.web.yml ps
+# Test public SSL through fresh DNS rather than a cached pre-proxy origin IP.
+curl --doh-url https://cloudflare-dns.com/dns-query -I https://oppor.fun/
+```
+
+The deployed build currently uses the existing demo data mode. The campaign backend and verified contract deployment are not configured for production. `/v1/` deliberately returns a JSON 503 instead of forwarding to another application's API. Configure the backend, contract deployment, storage, and live frontend environment before enabling real campaign transactions.
 
 RainbowKit browser-wallet connection works without a relay project. WalletConnect QR/mobile connections additionally require `VITE_WALLETCONNECT_PROJECT_ID`, with the application domain allowed in the Reown project dashboard. It is a public project identifier, not a signing secret.
