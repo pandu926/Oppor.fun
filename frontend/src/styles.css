@@ -1911,3 +1911,22 @@ textarea::placeholder {
 .dialog > .button + .button {
   margin-top: 12px;
 }
+
+.deploy-shell {
+  max-width: 760px;
+  margin: 64px auto;
+  padding: 0 24px;
+}
+.deploy-shell .panel {
+  margin-top: 32px;
+  padding: 32px;
+}
+.deploy-shell .facts {
+  margin: 24px 0;
+}
+.deploy-shell h1 {
+  font-size: clamp(26px, 4vw, 36px);
+}
+.deploy-shell .mono {
+  overflow-wrap: anywhere;
+}

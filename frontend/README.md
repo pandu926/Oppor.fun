@@ -60,6 +60,7 @@ RainbowKit handles wallet selection and connection; the backend's exact sign-in 
 | `/rewards`                            | Allocations, claim actions and proof export for discovered/saved entries                                                                       |
 | `/admin`                              | Stats, campaign moderation, users, suspension/restoration, session revocation, audit history, paginated jobs/status filtering                  |
 | `/docs`, `/docs/:guide`               | Dedicated documentation workspace with 12 product and developer guides, full-text search, section navigation, and copyable examples            |
+| `/setup/deploy`                       | Operator wallet deployment of the release factory on Arc mainnet; fee review, receipt verification, and manifest export                        |
 | `/how-it-works`, `/privacy`, `/terms` | Public product explanations and current data-handling information                                                                              |
 
 The current backend does not expose a global participant-entry feed. Entry and reward screens recover locally remembered campaign IDs and check the currently loaded public catalog in batches of four. They disclose this scope and provide ID import and additional catalog pagination. Search and asset tabs operate on the currently loaded catalog; load more to expand results. Token listings do not imply market-price or value guarantees.
@@ -70,7 +71,7 @@ Prepared transactions must match the configured network, current wallet, expecte
 
 Each action first presents a review dialog. Approval transactions are confirmed one at a time; the UI then prepares funding again, including simulation against updated allowance. Transaction hashes are exposed after broadcast. Receipt confirmation and transaction tracking are not treated as confirmed backend business state; the indexer remains authoritative. A timeout may occur after broadcast: inspect the displayed hash and refresh rather than submitting another transaction blindly.
 
-Mutations send CSRF and idempotency headers; ambiguous network/503/504 results retain the same request key for the same payload in the current session. Version conflicts require refresh/review. Private evidence is escaped as text, links require HTTPS, and external navigation uses `noopener noreferrer`. PNG/JPEG/WebP uploads are limited to five MiB, use the signed multipart policy, and are completed before evidence references the immutable upload. Saving evidence returns an entry to `REGISTERED`; submission is a separate action.
+Mutations send CSRF and idempotency headers; ambiguous network/503/504 results retain the same request key for the same payload in the current session. Version conflicts require refresh/review. Private evidence is escaped as text, links require HTTPS, and external navigation uses `noopener noreferrer`. PNG/JPEG/WebP uploads are limited to five MiB, use a signed PUT URL binding the original file size and content type, and are completed before evidence references the immutable upload. Saving evidence returns an entry to `REGISTERED`; submission is a separate action.
 
 Generated domain types come from the authoritative backend schema:
 
@@ -83,6 +84,7 @@ Function ABI comes from Foundry artifacts after contract compilation:
 
 ```sh
 python3 scripts/generate-abi.py
+node scripts/generate-deployment-artifact.mjs
 npm run format
 ```
 

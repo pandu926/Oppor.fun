@@ -103,12 +103,7 @@ impl Config {
                 .all(|network| network.prefix_len() > 0),
             "Trusting all proxy IPs is not allowed"
         );
-        let database_url = required("DATABASE_URL")?;
-        let database = Url::parse(&database_url)?;
-        ensure!(
-            matches!(database.scheme(), "postgres" | "postgresql"),
-            "DATABASE_URL must use PostgreSQL"
-        );
+        let database_url = migration_database_url()?;
         let redis_url = required("REDIS_URL")?;
         let redis = Url::parse(&redis_url)?;
         ensure!(
@@ -116,10 +111,6 @@ impl Config {
             "REDIS_URL must use Redis"
         );
         if production {
-            ensure!(
-                verified_database_tls(&database),
-                "Production PostgreSQL requires sslmode=verify-full"
-            );
             ensure!(
                 verified_redis_tls(&redis),
                 "Production Redis requires TLS (rediss://)"
@@ -223,6 +214,23 @@ impl Config {
             "oppor_session"
         }
     }
+}
+
+/// Migrations need a verified database connection, not RPC or storage credentials.
+pub fn migration_database_url() -> anyhow::Result<String> {
+    let value = required("DATABASE_URL")?;
+    let database = Url::parse(&value)?;
+    ensure!(
+        matches!(database.scheme(), "postgres" | "postgresql"),
+        "DATABASE_URL must use PostgreSQL"
+    );
+    if env::var("APP_ENV").unwrap_or_else(|_| "production".into()) != "local" {
+        ensure!(
+            verified_database_tls(&database),
+            "Production PostgreSQL requires sslmode=verify-full"
+        );
+    }
+    Ok(value)
 }
 
 fn verified_database_tls(database: &Url) -> bool {

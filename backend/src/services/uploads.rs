@@ -72,7 +72,7 @@ pub async fn presign(
     let upload = Uuid::new_v4();
     let key = format!("staging/{}/{upload}", auth.user_id);
     let signed =
-        crate::storage::presigned_post(&state.config, &key, &input.content_type, input.size_bytes)?;
+        crate::storage::presigned_put(&state.config, &key, &input.content_type, input.size_bytes)?;
     sqlx::query("INSERT INTO uploads(id,entry_id,user_id,staging_key,content_type,expected_size,expires_at) VALUES($1,$2,$3,$4,$5,$6,clock_timestamp()+interval '5 minutes')")
         .bind(upload).bind(entry).bind(auth.user_id).bind(&key).bind(input.content_type).bind(input.size_bytes as i64).execute(&mut **op.tx()).await?;
     op.finish(json!({"upload_id":upload,"upload":signed}))

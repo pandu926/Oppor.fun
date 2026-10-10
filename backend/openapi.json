@@ -2580,7 +2580,7 @@
     "/uploads/presign": {
       "post": {
         "operationId": "post_uploads_presign",
-        "summary": "Issue an exact-size S3 POST policy for private evidence",
+        "summary": "Issue an exact-size signed PUT URL for private evidence",
         "tags": [
           "uploads"
         ],
@@ -5505,13 +5505,17 @@
             "maxLength": 2048
           },
           "method": {
-            "const": "POST"
+            "const": "PUT"
           },
-          "fields": {
+          "headers": {
             "type": "object",
             "additionalProperties": {
               "type": "string"
             }
+          },
+          "size_bytes": {
+            "type": "integer",
+            "minimum": 0
           },
           "expires_in": {
             "type": "integer",
@@ -5524,7 +5528,8 @@
         "required": [
           "url",
           "method",
-          "fields",
+          "headers",
+          "size_bytes",
           "expires_in",
           "instructions"
         ],

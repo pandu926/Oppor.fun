@@ -11,7 +11,7 @@ Rust 1.97.1, Axum 0.8.9, Tokio, SQLx 0.8.6, PostgreSQL, Redis, Alloy ABI encodin
 1. Sign in with an EIP-4361 wallet challenge. EOA and deployed EIP-1271 contract wallets are supported.
 2. Create and edit a campaign draft, including social tasks and ERC-20 / ERC-721 / ERC-1155 reward configuration.
 3. Lock the rules and deadlines; prepare factory creation, approvals, funding, and activation transactions.
-4. Register participants and accept evidence before cutoff. Uploads use size-bound signed S3 POST policies.
+4. Register participants and accept evidence before cutoff. Uploads use signed PUT URLs binding the exact Content-Length and Content-Type, compatible with private R2 buckets.
 5. Review submissions manually after cutoff. There are no X API calls, X OAuth, scrapers, or automatic social-verification claims.
 6. Lock eligibility and process a durable allocation job. Support all-eligible distributions, fixed rewards, and reproducible server raffles.
 7. Publish immutable manifests and Merkle proofs; prepare creator finalization and recipient claim transactions.

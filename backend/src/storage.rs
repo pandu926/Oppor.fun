@@ -120,44 +120,104 @@ impl Storage {
             .map_err(|_| ApiError::unavailable())
     }
 }
-pub fn presigned_post(
+/// Browser-compatible SigV4 PUT: Content-Length and Content-Type are both signed.
+/// The browser sets Content-Length from the file body; completion revalidates bytes.
+pub fn presigned_put(
     config: &Config,
     key: &str,
     content_type: &str,
     size: u64,
 ) -> Result<serde_json::Value> {
-    use base64::{Engine, engine::general_purpose::STANDARD};
+    presigned_put_credentials(
+        &UploadSigningConfig {
+            endpoint: &config.storage_endpoint,
+            bucket: &config.storage_bucket,
+            region: &config.storage_region,
+            access_key: &config.storage_access_key,
+            secret_key: config.storage_secret_key.as_str(),
+        },
+        key,
+        content_type,
+        size,
+    )
+}
+
+pub struct UploadSigningConfig<'a> {
+    pub endpoint: &'a str,
+    pub bucket: &'a str,
+    pub region: &'a str,
+    pub access_key: &'a str,
+    pub secret_key: &'a str,
+}
+
+pub fn presigned_put_credentials(
+    config: &UploadSigningConfig<'_>,
+    key: &str,
+    content_type: &str,
+    size: u64,
+) -> Result<serde_json::Value> {
     use hmac::{Hmac, Mac};
-    use sha2::Sha256;
+    use sha2::{Digest, Sha256};
     fn sign(key: &[u8], data: &[u8]) -> Vec<u8> {
         let mut m =
             <Hmac<Sha256> as Mac>::new_from_slice(key).expect("HMAC accepts any key length");
         m.update(data);
         m.finalize().into_bytes().to_vec()
     }
+    if size == 0
+        || size > 5 * 1024 * 1024
+        || !matches!(content_type, "image/png" | "image/jpeg" | "image/webp")
+    {
+        return Err(ApiError::invalid("Invalid evidence upload metadata."));
+    }
     let now = chrono::Utc::now();
     let date = now.format("%Y%m%d").to_string();
     let stamp = now.format("%Y%m%dT%H%M%SZ").to_string();
-    let credential = format!(
-        "{}/{}/{}/s3/aws4_request",
-        config.storage_access_key, date, config.storage_region
+    let scope = format!("{}/{}/s3/aws4_request", date, config.region);
+    let credential = format!("{}/{}", config.access_key, scope);
+    let mut url = url::Url::parse(config.endpoint).map_err(|_| ApiError::internal())?;
+    {
+        let mut segments = url.path_segments_mut().map_err(|_| ApiError::internal())?;
+        segments.pop_if_empty().push(config.bucket);
+        for segment in key.split('/') {
+            segments.push(segment);
+        }
+    }
+    let host = match url.port() {
+        Some(port) => format!("{}:{port}", url.host_str().ok_or_else(ApiError::internal)?),
+        None => url.host_str().ok_or_else(ApiError::internal)?.to_owned(),
+    };
+    let signed_headers = "content-length;content-type;host";
+    let query = url::form_urlencoded::Serializer::new(String::new())
+        .append_pair("X-Amz-Algorithm", "AWS4-HMAC-SHA256")
+        .append_pair("X-Amz-Credential", &credential)
+        .append_pair("X-Amz-Date", &stamp)
+        .append_pair("X-Amz-Expires", "300")
+        .append_pair("X-Amz-SignedHeaders", signed_headers)
+        .finish()
+        .replace('+', "%20");
+    let headers = format!("content-length:{size}\ncontent-type:{content_type}\nhost:{host}\n");
+    let canonical = format!(
+        "PUT\n{}\n{query}\n{headers}\n{signed_headers}\nUNSIGNED-PAYLOAD",
+        url.path()
     );
-    let policy = serde_json::json!({"expiration":(now+chrono::Duration::minutes(5)).to_rfc3339(),"conditions":[{"bucket":config.storage_bucket},{"key":key},{"Content-Type":content_type},["content-length-range",size,size],{"x-amz-algorithm":"AWS4-HMAC-SHA256"},{"x-amz-credential":credential},{"x-amz-date":stamp}]});
-    let encoded = STANDARD.encode(serde_json::to_vec(&policy).map_err(|_| ApiError::internal())?);
+    let string_to_sign = format!(
+        "AWS4-HMAC-SHA256\n{stamp}\n{scope}\n{}",
+        hex::encode(Sha256::digest(canonical.as_bytes()))
+    );
     let day = sign(
-        format!("AWS4{}", config.storage_secret_key.as_str()).as_bytes(),
+        format!("AWS4{}", config.secret_key).as_bytes(),
         date.as_bytes(),
     );
-    let region = sign(&day, config.storage_region.as_bytes());
+    let region = sign(&day, config.region.as_bytes());
     let service = sign(&region, b"s3");
     let signing = sign(&service, b"aws4_request");
-    let mut url = url::Url::parse(&config.storage_endpoint).map_err(|_| ApiError::internal())?;
-    url.path_segments_mut()
-        .map_err(|_| ApiError::internal())?
-        .pop_if_empty()
-        .push(&config.storage_bucket);
+    url.set_query(Some(&format!(
+        "{query}&X-Amz-Signature={}",
+        hex::encode(sign(&signing, string_to_sign.as_bytes()))
+    )));
     Ok(
-        serde_json::json!({"url":url.to_string(),"method":"POST","fields":{"key":key,"Content-Type":content_type,"policy":encoded,"x-amz-algorithm":"AWS4-HMAC-SHA256","x-amz-credential":credential,"x-amz-date":stamp,"x-amz-signature":hex::encode(sign(&signing,encoded.as_bytes()))},"expires_in":300,"instructions":"Send multipart form fields followed by the file field. The signed policy enforces the exact file size and key."}),
+        serde_json::json!({"url":url.to_string(),"method":"PUT","headers":{"Content-Type":content_type},"size_bytes":size,"expires_in":300,"instructions":"Send the original file as the PUT body. Content type and exact byte length are signed; completion validates image bytes and preserves an immutable copy."}),
     )
 }
 pub fn valid_magic(b: &[u8], t: &str) -> bool {

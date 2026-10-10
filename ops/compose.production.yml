@@ -1,0 +1,108 @@
+name: oppor-production
+services:
+  postgres:
+    image: postgres@sha256:47f917f7409eacd22fc5dfb1dee634e1b55cf0c01d1a7eb701be2227a03e0641
+    restart: unless-stopped
+    env_file: /root/.config/oppor/production/database.env
+    command:
+      [
+        "postgres",
+        "-c",
+        "ssl=on",
+        "-c",
+        "ssl_cert_file=/tls/server.crt",
+        "-c",
+        "ssl_key_file=/tls/server.key",
+        "-c",
+        "max_connections=100",
+        "-c",
+        "shared_buffers=128MB",
+        "-c",
+        "hba_file=/tls/pg_hba.conf",
+      ]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - /root/.config/oppor/production/tls/postgres:/tls:ro
+    networks: [services]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U oppor_owner -d oppor"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    security_opt: [no-new-privileges:true]
+  redis:
+    image: redis@sha256:d146f83b1e0f02fc27c26a50cee39338c736674c5959db84363e6ae3cd9e02d2
+    restart: unless-stopped
+    command: ["redis-server", "/tls/redis.conf"]
+    volumes:
+      - redis-data:/data
+      - /root/.config/oppor/production/tls/redis:/tls:ro
+    networks: [services]
+    security_opt: [no-new-privileges:true]
+  api:
+    image: oppor-backend:production
+    build:
+      context: ..
+      dockerfile: ops/backend-runtime.Dockerfile
+    profiles: [application]
+    env_file: /root/.config/oppor/production/application.env
+    environment:
+      HTTP_BIND: 0.0.0.0:8080
+      SSL_CERT_FILE: /run/oppor/ca.crt
+    ports: ["127.0.0.1:18821:8080", "172.18.0.1:18821:8080"]
+    volumes:
+      - /root/.config/oppor/production/tls/ca.crt:/run/oppor/ca.crt:ro
+    networks: [services, web]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_started }
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    stop_grace_period: 40s
+  worker:
+    image: oppor-backend:production
+    build:
+      context: ..
+      dockerfile: ops/backend-runtime.Dockerfile
+    profiles: [application]
+    entrypoint: [oppor-worker]
+    env_file: /root/.config/oppor/production/application.env
+    environment:
+      SSL_CERT_FILE: /run/oppor/ca.crt
+    volumes:
+      - /root/.config/oppor/production/tls/ca.crt:/run/oppor/ca.crt:ro
+    networks: [services, egress]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_started }
+    restart: unless-stopped
+    init: true
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    stop_grace_period: 40s
+  migrate:
+    image: oppor-backend:production
+    profiles: [operations]
+    command: [migrate]
+    env_file: /root/.config/oppor/production/migration.env
+    volumes:
+      - /root/.config/oppor/production/tls/ca.crt:/run/oppor/ca.crt:ro
+    networks: [services]
+    depends_on:
+      postgres: { condition: service_healthy }
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+networks:
+  web: { external: true, name: oppor-web_default }
+  services: { internal: true }
+  egress: {}
+volumes:
+  postgres-data: {}
+  redis-data: {}

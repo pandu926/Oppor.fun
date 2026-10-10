@@ -1,0 +1,6 @@
+**
+!backend/
+!backend/target/
+!backend/target/release/
+!backend/target/release/oppor-api
+!backend/target/release/oppor-worker

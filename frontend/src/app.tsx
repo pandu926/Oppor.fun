@@ -1,4 +1,4 @@
-import { Component, useEffect, type ReactNode } from "react";
+import { Component, useEffect, lazy, Suspense, type ReactNode } from "react";
 import { Route, Routes, useLocation } from "react-router-dom";
 import { Docs } from "./docs/docs";
 import { findDoc } from "./docs/content";
@@ -15,6 +15,7 @@ import { useQuery, skipToken } from "@tanstack/react-query";
 import type { Campaign } from "./lib/types";
 import { useApp } from "./lib/context";
 import { demo, siteUrl } from "./lib/config";
+const DeployFactory = lazy(() => import("./pages/deploy"));
 export function seo(path: string, campaign?: Campaign) {
   const doc = findDoc(path);
   const title =
@@ -34,11 +35,13 @@ export function seo(path: string, campaign?: Campaign) {
                 ? "My entries"
                 : path === "/rewards"
                   ? "My rewards"
-                  : path === "/admin"
-                    ? "Administration"
-                    : path === "/campaigns"
-                      ? "My campaigns"
-                      : "Campaign");
+                  : path === "/setup/deploy"
+                    ? "Deploy factory"
+                    : path === "/admin"
+                      ? "Administration"
+                      : path === "/campaigns"
+                        ? "My campaigns"
+                        : "Campaign");
   const indexable =
     ["/", "/how-it-works", "/privacy", "/terms"].includes(path) ||
     !!campaign ||
@@ -123,6 +126,14 @@ export function App() {
       <PageMeta />
       <Routes>
         <Route path="docs/*" element={<Docs />} />
+        <Route
+          path="setup/deploy"
+          element={
+            <Suspense fallback={<p>Loading deployment tools…</p>}>
+              <DeployFactory />
+            </Suspense>
+          }
+        />
         <Route element={<Layout />}>
           <Route index element={<Discover />} />
           <Route path="campaigns/:id" element={<CampaignDetail />} />

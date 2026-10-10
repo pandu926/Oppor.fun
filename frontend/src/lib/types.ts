@@ -473,7 +473,8 @@ export type TrackResult = {
 export type UploadPolicy = {
   url: string;
   method: unknown;
-  fields: Record<string, unknown>;
+  headers: Record<string, unknown>;
+  size_bytes: number;
   expires_in: number;
   instructions: string;
 };

@@ -651,7 +651,7 @@ async fn campaign_to_claim_security_and_concurrency() {
         StatusCode::UNPROCESSABLE_ENTITY
     );
 
-    // Upload evidence using a size-bound POST policy, then copy to an immutable private key.
+    // Upload evidence using a size-bound signed PUT, then copy to an immutable private key.
     let png = hex::decode("89504e470d0a1a0a00000000").unwrap();
     let upload = ok(
         &h,
@@ -661,33 +661,18 @@ async fn campaign_to_claim_security_and_concurrency() {
         Some(&alice),
     )
     .await;
-    let fields = upload["upload"]["fields"].as_object().unwrap();
-    use base64::Engine;
-    let policy: Value = serde_json::from_slice(
-        &base64::engine::general_purpose::STANDARD
-            .decode(fields["policy"].as_str().unwrap())
-            .unwrap(),
-    )
-    .unwrap();
-    assert!(policy["conditions"].as_array().unwrap().contains(&json!([
-        "content-length-range",
-        png.len(),
-        png.len()
-    ])));
-    let mut form = reqwest::multipart::Form::new();
-    for (k, v) in fields {
-        form = form.text(k.clone(), v.as_str().unwrap().to_owned());
-    }
-    form = form.part(
-        "file",
-        reqwest::multipart::Part::bytes(png.clone())
-            .file_name("evidence.png")
-            .mime_str("image/png")
-            .unwrap(),
+    assert_eq!(upload["upload"]["method"], "PUT");
+    assert_eq!(upload["upload"]["size_bytes"], png.len());
+    let signed_url = url::Url::parse(upload["upload"]["url"].as_str().unwrap()).unwrap();
+    assert!(
+        signed_url
+            .query_pairs()
+            .any(|(k, v)| k == "X-Amz-SignedHeaders" && v == "content-length;content-type;host")
     );
     let uploaded = reqwest::Client::new()
-        .post(upload["upload"]["url"].as_str().unwrap())
-        .multipart(form)
+        .put(signed_url)
+        .header("Content-Type", "image/png")
+        .body(png.clone())
         .send()
         .await
         .unwrap();
@@ -698,7 +683,12 @@ async fn campaign_to_claim_security_and_concurrency() {
     );
     let upload_id: Uuid = serde_json::from_value(upload["upload_id"].clone()).unwrap();
     use object_store::ObjectStoreExt;
-    let staging_key = object_store::path::Path::from(fields["key"].as_str().unwrap());
+    let staging: String = sqlx::query_scalar("SELECT staging_key FROM uploads WHERE id=$1")
+        .bind(upload_id)
+        .fetch_one(&h.state.db)
+        .await
+        .unwrap();
+    let staging_key = object_store::path::Path::from(staging);
     for bad in [vec![0; 1], vec![0; png.len()]] {
         h.state
             .storage

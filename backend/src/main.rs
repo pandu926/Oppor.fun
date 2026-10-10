@@ -3,14 +3,21 @@ use oppor_backend::{config::Config, state::AppState};
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     oppor_backend::init_tracing();
-    let config = Config::from_env()?;
-    let bind = config.bind;
-    let state = AppState::connect(config).await?;
     if std::env::args().any(|a| a == "migrate") {
-        oppor_backend::MIGRATOR.run(&state.db).await?;
+        let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+        let database_url = oppor_backend::config::migration_database_url()?;
+        let db = sqlx::postgres::PgPoolOptions::new()
+            .max_connections(2)
+            .connect(&database_url)
+            .await?;
+        oppor_backend::MIGRATOR.run(&db).await?;
+        db.close().await;
         tracing::info!("Database migrations applied");
         return Ok(());
     }
+    let config = Config::from_env()?;
+    let bind = config.bind;
+    let state = AppState::connect(config).await?;
     let listener = tokio::net::TcpListener::bind(bind).await?;
     tracing::info!(%bind,"Oppor API listening");
     axum::serve(

@@ -87,7 +87,7 @@ schemas.update({
     "Allocation": result({"index": AMOUNT, "recipient": ADDRESS, "token_id": AMOUNT, "quantity": AMOUNT, "proof": arr(HASH), "claim_tx_hash": nullable(HASH), "claimed_at": nullable(TIME)}),
     "AllocationResult": result({"campaign_id": UUID, "escrow": ADDRESS, "claim_deadline": TIME, "allocations": arr(ref("Allocation"))}),
     "TrackResult": result({"tx_hash": HASH, "status": TEXT, "note": TEXT}),
-    "UploadPolicy": result({"url": URI, "method": {"const": "POST"}, "fields": {"type": "object", "additionalProperties": TEXT}, "expires_in": COUNT, "instructions": TEXT}),
+    "UploadPolicy": result({"url": URI, "method": {"const": "PUT"}, "headers": {"type": "object", "additionalProperties": TEXT}, "size_bytes": COUNT, "expires_in": COUNT, "instructions": TEXT}),
     "UploadResult": result({"upload_id": UUID, "upload": ref("UploadPolicy")}),
     "UploadComplete": result({"upload_id": UUID, "status": {"const": "COMPLETE"}}),
     "FundingResult": result({"approvals": arr(ref("PreparedTransaction")), "fund": ref("PreparedTransaction"), "remaining_quantity": AMOUNT, "instructions": TEXT}),
@@ -132,7 +132,7 @@ catalog = [
     ("/campaigns/{id}/manifest", "get", "Read final immutable manifest URL and hash", False, None, False, "JsonResult"),
     ("/campaigns/{id}/allocations/{wallet}", "get", "Read a recipient's final allocations and Merkle proofs", False, None, False, "JsonResult"),
     ("/campaigns/{id}/transactions", "post", "Track a user transaction hash; never proof of success", True, "TrackInput", True, "JsonResult"),
-    ("/uploads/presign", "post", "Issue an exact-size S3 POST policy for private evidence", True, "UploadInput", True, "JsonResult"),
+    ("/uploads/presign", "post", "Issue an exact-size signed PUT URL for private evidence", True, "UploadInput", True, "JsonResult"),
     ("/uploads/{upload_id}/complete", "post", "Validate and preserve uploaded evidence immutably", True, None, True, "JsonResult"),
 ]
 for intent in ["create", "fund", "activate", "finalize", "claim", "cancel", "sweep"]:

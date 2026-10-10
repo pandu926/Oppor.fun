@@ -334,13 +334,20 @@ function TaskEvidence({
         content_type: file.type,
         size_bytes: file.size,
       });
-      const form = new FormData();
-      for (const [key, value] of Object.entries(presigned.upload.fields))
-        form.append(key, String(value));
-      form.append("file", file);
+      if (
+        presigned.upload.method !== "PUT" ||
+        presigned.upload.size_bytes !== file.size
+      )
+        throw new Error("Invalid upload authorization.");
       const uploaded = await fetch(
         secureUrl(presigned.upload.url, import.meta.env.DEV),
-        { method: "POST", body: form, signal: AbortSignal.timeout(60000) },
+        {
+          method: "PUT",
+          headers: { "Content-Type": file.type },
+          body: file,
+          credentials: "omit",
+          signal: AbortSignal.timeout(60000),
+        },
       );
       if (!uploaded.ok)
         throw new Error("Upload failed. Your entry has not changed.");

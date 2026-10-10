@@ -12,6 +12,7 @@ Token promotion campaigns with creator-funded escrow rewards, manual evidence re
 - [Platform administration](backend/ADMIN.md)
 - [Security boundaries](backend/SECURITY.md)
 - [Operations runbook](backend/RUNBOOK.md)
+- [Production activation and recovery](docs/PRODUCTION.md)
 - [Verification results](backend/VERIFICATION.md)
 - [Original product and contract specifications](docs/README.md)
 

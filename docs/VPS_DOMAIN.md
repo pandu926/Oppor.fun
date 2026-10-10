@@ -30,7 +30,7 @@ node ops/sync-dns.mjs --apply
 
 For the frontend, set `VITE_SITE_URL=https://oppor.fun` before building. For the backend, set both `PUBLIC_ORIGIN` and `ALLOWED_ORIGINS` to `https://oppor.fun`. Set storage CORS to the same origin and configure trusted reverse proxy addresses explicitly. The application's default canonical URLs and wallet metadata already use this domain.
 
-The frontend is deployed through `ops/compose.web.yml` as `oppor-web-web-1`, with automatic restart and a health check. It serves the production `frontend/dist` build through private port 18820. The shared `cashtokens-nginx` reverse proxy has dedicated virtual hosts from `ops/nginx/origin.conf`, loaded without restarting other applications.
+The frontend is deployed through `ops/compose.web.yml` as `oppor-web-web-1`, with automatic restart and a health check. It serves the current atomic release from `/var/lib/oppor/web/current` through private port 18820. The parent release directory is mounted, so a symlink switch becomes visible without recreating the container. Hashed assets from earlier releases remain available to browsers. The shared `cashtokens-nginx` reverse proxy has dedicated virtual hosts from `ops/nginx/origin.conf`, loaded without restarting other applications.
 
 Cloudflare Universal SSL is active for `oppor.fun` and `*.oppor.fun`. The zone uses **Full (strict)** encryption and **Always Use HTTPS**. A Cloudflare Origin CA certificate for `oppor.fun` and `www.oppor.fun` is installed at the reverse proxy; it expires on 10 October 2027. Private key material is stored outside Git and is readable only by root. Renew the origin certificate before that date. HTTP redirects to HTTPS; `www` redirects to the canonical apex.
 
@@ -41,6 +41,6 @@ docker compose -f ops/compose.web.yml ps
 curl --doh-url https://cloudflare-dns.com/dns-query -I https://oppor.fun/
 ```
 
-The deployed build currently uses the existing demo data mode. The campaign backend and verified contract deployment are not configured for production. `/v1/` deliberately returns a JSON 503 instead of forwarding to another application's API. Configure the backend, contract deployment, storage, and live frontend environment before enabling real campaign transactions.
+The deployed build currently uses the existing demo data mode. The production database, Redis, storage, migrations, and runtime image are prepared and tested. API activation still requires a verified Arc mainnet factory deployment. `/v1/` deliberately returns a JSON 503 instead of forwarding to another application's API. Follow [the production runbook](PRODUCTION.md) to deploy from a wallet and activate the verified backend and live frontend.
 
 RainbowKit browser-wallet connection works without a relay project. WalletConnect QR/mobile connections additionally require `VITE_WALLETCONNECT_PROJECT_ID`, with the application domain allowed in the Reown project dashboard. It is a public project identifier, not a signing secret.

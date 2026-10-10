@@ -7,7 +7,7 @@ services:
       - "127.0.0.1:18820:80"
       - "172.18.0.1:18820:80"
     volumes:
-      - ../frontend/dist:/usr/share/nginx/html:ro
+      - /var/lib/oppor/web:/usr/share/nginx/releases:ro
       - ./nginx/site.conf:/etc/nginx/conf.d/default.conf:ro
     read_only: true
     tmpfs:
