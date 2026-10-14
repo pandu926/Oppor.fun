@@ -1,0 +1,15 @@
+{
+  "schema_version": 1,
+  "network": "mainnet",
+  "chain_id": "5042",
+  "rpc_url": "https://rpc.mainnet.arc.io",
+  "factory_address": "0x3fe542ab4ca297eb8936692b04a619a9f5935561",
+  "deployment_block": "25932535",
+  "transaction_hash": "0xd1baf1ac2e16c6da0306fbacc97171548497f8327268a4544ebed30bf12c0ecb",
+  "deployer": "0x88513627a28851d4aa80fe7d9dca000ec38c6852",
+  "factory_code_hash": "0xd90c772c36fdb389ff14d5b41cbbe0a21de56f5dd31ab4b519243660957317c4",
+  "escrow_code_hash": "0xd2a4897980c9304450b1e59fc9ac9f7557641739cad37117f8aab3289575fa50",
+  "verified_at": "2026-10-14T13:57:43.767Z",
+  "gas_used": "3014240",
+  "deployment_fee_usdc": "0.06028480403003888"
+}
