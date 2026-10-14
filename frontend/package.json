@@ -21,6 +21,7 @@
     "@rainbow-me/rainbowkit": "2.2.11",
     "@tanstack/react-query": "5.104.1",
     "lucide-react": "1.54.0",
+    "qr": "0.7.2",
     "react": "19.3.0",
     "react-dom": "19.3.0",
     "react-router-dom": "7.18.4",

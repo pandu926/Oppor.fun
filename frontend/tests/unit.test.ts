@@ -201,3 +201,25 @@ test("official campaign identity binds creator, chain, campaign and collection",
     false,
   );
 });
+
+test("WalletConnect QR matrix remains decodable with the current QR encoder", async () => {
+  const { create } = await import("../src/lib/qr-code");
+  const { decodeQR } = await import("qr/decode.js");
+  // Synthetic pairing payload only; no live session secrets.
+  const value = `wc:${"a".repeat(64)}@2?relay-protocol=irn&symKey=${"b".repeat(64)}`;
+  const { grid, edgeLength } = create(value, { errorCorrection: "medium" });
+  assert.equal((edgeLength - 17) % 4, 0);
+  const scale = 6;
+  const width = (edgeLength + 8) * scale;
+  const data = new Uint8Array(width * width * 4).fill(255);
+  for (let y = 0; y < width; y++)
+    for (let x = 0; x < width; x++) {
+      const row = Math.floor(y / scale) - 4;
+      const column = Math.floor(x / scale) - 4;
+      if (grid[row]?.[column]) {
+        const offset = (y * width + x) * 4;
+        data[offset] = data[offset + 1] = data[offset + 2] = 0;
+      }
+    }
+  assert.equal(decodeQR({ data, width, height: width }), value);
+});

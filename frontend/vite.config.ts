@@ -6,6 +6,14 @@ export default defineConfig({
   plugins: [
     react(),
     {
+      name: "cuer-qr-border-compatibility",
+      enforce: "pre",
+      transform(_code, id) {
+        if (id.replaceAll("\\", "/").endsWith("/cuer/_dist/QrCode.js"))
+          return `export { create } from ${JSON.stringify(resolve("src/lib/qr-code.ts"))};`;
+      },
+    },
+    {
       name: "documentation-preview-html",
       configurePreviewServer(server) {
         server.middlewares.use((req, _res, next) => {

@@ -19,10 +19,10 @@ The mainnet checks passed alongside 32 browser regression tests and six frontend
 
 ## Wallet support
 
-Injected browser wallets are enabled. The code also supports WalletConnect when a valid Reown project ID is configured; QR relay is not enabled in the current deployment.
+Injected browser wallets and WalletConnect are enabled. RainbowKit supports browser extensions and QR pairing with compatible mobile wallets through the configured Reown project. Wallet approval is completed in the user’s wallet.
 
 ## Scope
 
-These checks establish application configuration and connectivity. They do not claim that a funded mainnet campaign or mainnet reward claim has been executed. The separate funded E2E run is documented as [testnet verification](COMPREHENSIVE_E2E_2026-10-13.md).
+These checks establish application configuration and connectivity. The official [Early Adopter campaign](EARLY_ADOPTER.md) subsequently funded 1,000 NFTs in mainnet escrow. A mainnet reward claim has not yet been executed. The separate funded E2E run is documented as [testnet verification](COMPREHENSIVE_E2E_2026-10-13.md).
 
 See [mainnet deployment](MAINNET_DEPLOYMENT.md), [verification](VERIFICATION.md), and [security](../SECURITY.md).
