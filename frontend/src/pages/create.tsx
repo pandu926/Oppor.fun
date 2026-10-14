@@ -131,12 +131,15 @@ export function CampaignForm({
         throw new Error("Check winner count, capacity, and entry limit.");
       if (policy === "FIXED_REWARD") {
         uint256(perReward);
+        const recipients = mode === "RAFFLE" ? winners : capacity;
         if (
-          capacity <= 0 ||
+          recipients <= 0 ||
           BigInt(perReward) === 0n ||
-          BigInt(perReward) * BigInt(capacity) !== BigInt(total)
+          BigInt(perReward) * BigInt(recipients) !== BigInt(total)
         )
-          throw new Error("Fixed reward × capacity must equal the total pool.");
+          throw new Error(
+            "Fixed reward × raffle winners or all-eligible capacity must equal the total pool.",
+          );
       }
       const dates = [start, cutoff, review, claim].map((d) =>
         new Date(d).getTime(),

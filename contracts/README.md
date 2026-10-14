@@ -4,6 +4,7 @@ Implemented, non-upgradeable Solidity contracts for creator-funded promotion cam
 
 - [CampaignFactory](src/CampaignFactory.sol): permissionless deployment and `(creator, campaignKey)` registry.
 - [CampaignEscrow](src/CampaignEscrow.sol): one reward asset, fixed deadlines, funding, activation, single finalization, Merkle claims, cancellation, and expired-campaign refund.
+- [Early Adopter collection](collections/OpporEarlyAdopter.sol): fixed edition of 1,000 ERC-1155 collectibles for the [official campaign](../docs/EARLY_ADOPTER.md).
 - [Types](src/CampaignTypes.sol): field order and numeric enum values shared with the Rust backend.
 - [Security boundaries and static-analysis review](SECURITY.md).
 - [Verification record](VERIFICATION.md).

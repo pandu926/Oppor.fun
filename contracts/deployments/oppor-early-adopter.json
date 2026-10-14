@@ -1,0 +1,51 @@
+{
+  "schema_version": 1,
+  "network": "Arc mainnet",
+  "chain_id": 5042,
+  "name": "Oppor.fun Early Adopter",
+  "standard": "ERC1155",
+  "collection": "0x890870ce940dbbb74c2962d3b1de5f2e0858c2c9",
+  "token_id": "1",
+  "edition_size": "1000",
+  "campaign_id": "dc379018-5da0-4fe4-a3c4-c14188ca0c1c",
+  "campaign_url": "https://oppor.fun/campaigns/dc379018-5da0-4fe4-a3c4-c14188ca0c1c",
+  "escrow": "0x22fa96188576f0e7b5fc5653dbdcfcc9b4493333",
+  "distribution": "RAFFLE",
+  "winners": 1000,
+  "reward_per_recipient": "1",
+  "registration_limit": 100000,
+  "start_at": "2026-10-14T15:10:29.000Z",
+  "cutoff_at": "2026-10-28T15:10:29.000Z",
+  "review_deadline": "2026-10-31T15:10:29.000Z",
+  "claim_deadline": "2026-11-30T15:10:29.000Z",
+  "artwork_url": "https://oppor.fun/collectibles/oppor-early-adopter-v1.webp",
+  "artwork_sha256": "9715c4f57475ba95b9ba493f4225086be944e71dd0276c608e4444cedcd33a73",
+  "source": "contracts/collections/OpporEarlyAdopter.sol",
+  "transactions": [
+    {
+      "label": "collection",
+      "hash": "0x33c9ef22f7f658cebc0ebb4dca6f0cbb1f95584c6b7ea134e7bf0c3423cbe10c",
+      "block": "25940528"
+    },
+    {
+      "label": "escrow",
+      "hash": "0xda515a107c046f9753177534807d8b2c37d2d19da51971d19dc17753329297c5",
+      "block": "25940951"
+    },
+    {
+      "label": "approve0",
+      "hash": "0x3ad2aa76be9a5744ecabd6ddb8e1075e2797d55ea4e45f4f70fa541803134d91",
+      "block": "25940962"
+    },
+    {
+      "label": "fund",
+      "hash": "0xd25359697b0fc5d6c0ea1d0c50194b609cbd9a60ea50a550b862afea0dcfddad",
+      "block": "25940973"
+    },
+    {
+      "label": "activate",
+      "hash": "0xdb914c23bfe71f3652a01d577e81d1a66b167f62bc323cb59655f0fde3f7bc52",
+      "block": "25940984"
+    }
+  ]
+}

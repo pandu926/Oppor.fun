@@ -1,3 +1,4 @@
+import { isEarlyAdopter } from "./official";
 import { useQuery } from "@tanstack/react-query";
 import { erc20Abi, formatUnits, type Address } from "viem";
 import { demo, usdcAddress } from "./config";
@@ -5,6 +6,8 @@ import { publicClient } from "./wallet";
 import type { Campaign } from "./types";
 import { samples, sampleRewards } from "./demo";
 export function staticReward(c: Campaign) {
+  if (isEarlyAdopter(c))
+    return `${decimalLabel(c.reward.amount_base_units, 0)} Early Adopter NFTs`;
   const i = demo ? samples.findIndex((s) => s.id === c.id) : -1;
   if (demo && i >= 0) return sampleRewards[i];
   if (c.reward.asset_kind === "ERC721")

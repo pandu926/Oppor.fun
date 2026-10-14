@@ -424,7 +424,7 @@ export const docPages: DocPage[] = [
             ],
             [
               "Fixed reward",
-              "Declare a reward per recipient and a positive capacity; total funding equals reward per recipient × capacity.",
+              "Declare a reward per recipient. Total funding equals that reward × raffle winners, or × a positive capacity for all-eligible distribution. A raffle can accept more entries than winners.",
             ],
           ],
         },

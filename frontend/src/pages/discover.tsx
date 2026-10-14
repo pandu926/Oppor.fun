@@ -1,3 +1,7 @@
+import { useQuery } from "@tanstack/react-query";
+import { request } from "../lib/api";
+import type { Campaign } from "../lib/types";
+import { earlyAdopter, isEarlyAdopter } from "../lib/official";
 import { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import {
@@ -19,7 +23,7 @@ import {
 } from "../components/ui";
 import { CreateLink } from "../components/layout";
 import { useCampaigns } from "../lib/queries";
-import { demo, usdcAddress } from "../lib/config";
+import { demo, chain, usdcAddress } from "../lib/config";
 import { Reward } from "../lib/reward";
 import { samples } from "../lib/demo";
 export function Discover() {
@@ -46,7 +50,32 @@ export function Discover() {
         (filter === "nfts" && c.reward.asset_kind !== "ERC20")) &&
       `${c.title} ${c.description}`.toLowerCase().includes(term.toLowerCase()),
   );
-  const featured = items.find((c) => c.status === "ACTIVE") || items[0];
+  const official = useQuery({
+    queryKey: ["campaign", earlyAdopter.campaignId],
+    enabled: !demo && String(chain.id) === earlyAdopter.chainId,
+    queryFn: ({ signal }) =>
+      request<Campaign>(`/campaigns/${earlyAdopter.campaignId}`, { signal }),
+    retry: false,
+    refetchInterval: 15000,
+  });
+  const officialCandidate = official.data || items.find(isEarlyAdopter);
+  const pinned =
+    !demo &&
+    officialCandidate &&
+    isEarlyAdopter(officialCandidate) &&
+    [
+      "SCHEDULED",
+      "ACTIVE",
+      "REVIEWING",
+      "ELIGIBILITY_LOCKED",
+      "ALLOCATION_READY",
+      "CLAIM_OPEN",
+    ].includes(officialCandidate.status)
+      ? officialCandidate
+      : undefined;
+  const featured =
+    pinned || items.find((c) => c.status === "ACTIVE") || items[0];
+  const officialFeatured = !!featured && isEarlyAdopter(featured);
   const filtering = !!term || filter !== "all";
   function change(key: string, value: string) {
     const next = new URLSearchParams(params);
@@ -62,9 +91,15 @@ export function Discover() {
         action={<CreateLink />}
       />
       {featured && (
-        <section className="featured">
+        <section
+          className={`featured${officialFeatured ? " official-featured" : ""}`}
+        >
           <div className="featured-content">
-            <span className="eyebrow">Featured campaign</span>
+            <span className="eyebrow">
+              {officialFeatured
+                ? "Official Oppor.fun campaign"
+                : "Featured campaign"}
+            </span>
             <h2>
               {demo && featured.id === samples[0].id
                 ? "The Orbit community launch"
@@ -79,12 +114,27 @@ export function Discover() {
               View campaign <ArrowRight size={17} />
             </Link>
           </div>
-          <OrbitArt />
+          {officialFeatured ? (
+            <img
+              className="official-featured-art"
+              src={earlyAdopter.artwork}
+              alt="Oppor.fun Early Adopter collectible"
+              width="240"
+              height="240"
+              fetchPriority="high"
+            />
+          ) : (
+            <OrbitArt />
+          )}
           <div className="featured-reward">
             <strong>
               <Reward campaign={featured} />
             </strong>
-            <p>Total reward pool</p>
+            <p>
+              {officialFeatured
+                ? "Up to 1,000 winners · 1 NFT each"
+                : "Total reward pool"}
+            </p>
             <div className="inline">
               <Badge>
                 <Ticket size={15} />

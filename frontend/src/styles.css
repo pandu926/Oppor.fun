@@ -2056,3 +2056,129 @@ textarea::placeholder {
     overflow-wrap: anywhere;
   }
 }
+
+.official-featured {
+  background: linear-gradient(120deg, #eeecff 0%, #f6f5ff 55%, #eeecff 100%);
+  min-height: 256px;
+}
+.official-featured-art {
+  width: 220px;
+  height: 220px;
+  object-fit: contain;
+  border-radius: 20px;
+  flex: 0 0 220px;
+}
+.official-featured .featured-content {
+  max-width: 510px;
+}
+.official-featured .featured-content p {
+  max-width: 490px;
+}
+.official-featured .featured-reward > strong {
+  font-size: 23px;
+  line-height: 1.25;
+}
+.official-token-art {
+  object-fit: cover;
+  border-radius: 14px;
+  flex-shrink: 0;
+}
+@media (max-width: 1100px) {
+  .official-featured-art {
+    width: 160px;
+    height: 160px;
+    flex-basis: 160px;
+  }
+}
+@media (max-width: 640px) {
+  .official-featured {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 100px;
+    gap: 16px;
+    padding: 22px;
+  }
+  .official-featured .featured-content {
+    grid-column: 1 / -1;
+  }
+  .official-featured-art {
+    grid-column: 2;
+    grid-row: 2;
+    width: 100px;
+    height: 100px;
+    border-radius: 12px;
+  }
+  .official-featured .featured-reward {
+    grid-column: 1;
+    grid-row: 2;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    text-align: left;
+  }
+  .official-featured .featured-reward > strong {
+    font-size: 19px;
+  }
+  .official-featured .featured-reward .inline {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+  }
+}
+@media (max-width: 640px) {
+  .official-featured .featured-reward {
+    display: block;
+  }
+  .official-featured .featured-reward p {
+    display: block;
+    font-size: 12px;
+    line-height: 1.5;
+    margin-top: 8px;
+  }
+  .official-featured .featured-reward > .inline {
+    margin-top: 10px;
+  }
+}
+.official-featured .featured-reward {
+  min-width: 0;
+  flex: 0 1 230px;
+  overflow-wrap: anywhere;
+}
+.official-featured .featured-reward > strong {
+  white-space: normal;
+}
+@media (min-width: 641px) and (max-width: 1100px) {
+  .official-featured {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 130px;
+    gap: 20px;
+  }
+  .official-featured .featured-content {
+    grid-column: 1 / -1;
+  }
+  .official-featured-art {
+    grid-column: 2;
+    grid-row: 2;
+    width: 130px;
+    height: 130px;
+  }
+  .official-featured .featured-reward {
+    grid-column: 1;
+    grid-row: 2;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+}
+.card-reward {
+  min-width: 0;
+}
+.card-reward > strong {
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+.card-reward > div {
+  min-width: 0;
+}
+.card-reward > div > strong {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}

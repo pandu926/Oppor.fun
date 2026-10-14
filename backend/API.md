@@ -48,7 +48,7 @@ Example request to `POST /campaigns`:
 }
 ```
 
-All example addresses, dates, and chain IDs must be replaced. A campaign accepts one reward asset. ERC-721 inventory lists token IDs; target amount equals inventory count, maximum 100. ERC-1155 accepts one configured token ID. `FIXED_REWARD` requires positive `capacity` and target funding equal to reward per recipient times capacity. Positive capacity is the effective registration cap. Otherwise `registration_limit` applies, up to 100,000.
+All example addresses, dates, and chain IDs must be replaced. A campaign accepts one reward asset. ERC-721 inventory lists token IDs; target amount equals inventory count, maximum 100. ERC-1155 accepts one configured token ID. `FIXED_REWARD` requires target funding equal to reward per recipient times the recipient limit: `winner_count` for raffles, or a positive `capacity` for all-eligible distribution. Raffles may use `capacity=0` to let registration exceed the winner count. Positive capacity is the effective registration cap. Otherwise `registration_limit` applies, up to 100,000.
 
 `PATCH /campaigns/{id}` accepts a full replacement draft under `campaign`, together with `expected_version`. Full draft replacement regenerates task IDs; use individual task endpoints to preserve existing draft task IDs. A locked draft is immutable. Public GET returns campaign metadata and ordered tasks; unpublished drafts are visible only to the creator. Detail includes `verification_mode: "MANUAL"`.
 

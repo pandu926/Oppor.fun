@@ -4,6 +4,7 @@ Oppor runs on Arc mainnet. Product guides are available at [oppor.fun/docs](http
 
 | Guide | Contents |
 | --- | --- |
+| [Early Adopter campaign](EARLY_ADOPTER.md) | Official Genesis NFT campaign, rules, deadlines, and collection |
 | [Architecture](ARCHITECTURE.md) | Components, campaign lifecycle, data and settlement boundaries |
 | [Development](DEVELOPMENT.md) | Local setup and verification commands |
 | [Mainnet deployment](MAINNET_DEPLOYMENT.md) | Contract address, network, transaction, and bytecode verification |

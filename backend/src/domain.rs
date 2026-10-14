@@ -176,9 +176,14 @@ impl CampaignInput {
             return Err(ApiError::invalid("Invalid raffle winner count."));
         }
         if d.allocation_policy == AllocationPolicy::FixedReward {
-            if d.capacity == 0 || self.reward.asset_kind == AssetKind::Erc721 {
+            let recipients = if d.mode == DistributionMode::Raffle {
+                d.winner_count
+            } else {
+                d.capacity
+            };
+            if recipients == 0 || self.reward.asset_kind == AssetKind::Erc721 {
                 return Err(ApiError::invalid(
-                    "Fixed rewards require a bounded capacity and a divisible reward asset.",
+                    "Fixed rewards require a recipient limit and a divisible reward asset.",
                 ));
             }
             let r = positive(
@@ -186,9 +191,9 @@ impl CampaignInput {
                     .as_deref()
                     .ok_or_else(|| ApiError::invalid("A fixed reward amount is required."))?,
             )?;
-            if r.checked_mul(U256::from(d.capacity)) != Some(p) {
+            if r.checked_mul(U256::from(recipients)) != Some(p) {
                 return Err(ApiError::invalid(
-                    "The reward pool must equal the fixed reward times participant capacity.",
+                    "The reward pool must equal the fixed reward times raffle winners or all-eligible capacity.",
                 ));
             }
         } else if d.reward_per_recipient.is_some() {

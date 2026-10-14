@@ -1,3 +1,4 @@
+import { isEarlyAdopter } from "../lib/official";
 import { taskInfo } from "../lib/tasks";
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -18,8 +19,7 @@ import {
   Loading,
   PageHeader,
   SafeLink,
-  TokenArt,
-  campaignIndex,
+  CampaignArt,
 } from "../components/ui";
 import { Reward } from "../lib/reward";
 import { TransactionButton } from "../components/transaction";
@@ -87,9 +87,13 @@ export function CampaignDetail() {
       <div className="detail-grid">
         <div>
           <section className="panel campaign-summary">
-            <TokenArt index={campaignIndex(campaign)} />
+            <CampaignArt campaign={campaign} />
             <div>
-              <span className="eyebrow">Arc campaign</span>
+              <span className="eyebrow">
+                {isEarlyAdopter(campaign)
+                  ? "Created by Oppor.fun · Official campaign"
+                  : "Arc campaign"}
+              </span>
               <h2>
                 <Reward campaign={campaign} />
               </h2>

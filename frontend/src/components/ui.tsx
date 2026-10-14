@@ -1,3 +1,4 @@
+import { earlyAdopter, isEarlyAdopter } from "../lib/official";
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -23,6 +24,19 @@ export function Brand() {
       <img src="/favicon.svg" width="34" height="34" alt="" />
       <span>oppor</span>
     </Link>
+  );
+}
+export function CampaignArt({ campaign }: { campaign: Campaign }) {
+  return isEarlyAdopter(campaign) ? (
+    <img
+      className="token-art official-token-art"
+      src={earlyAdopter.artwork}
+      width="64"
+      height="64"
+      alt="Oppor.fun Early Adopter NFT"
+    />
+  ) : (
+    <TokenArt index={campaignIndex(campaign)} />
   );
 }
 export function TokenArt({ index = 0 }: { index?: number }) {
@@ -164,9 +178,11 @@ export function CampaignCard({ campaign: c }: { campaign: Campaign }) {
   return (
     <Link className="campaign-card" to={`/campaigns/${c.id}`}>
       <div className="card-top">
-        <TokenArt index={campaignIndex(c)} />
+        <CampaignArt campaign={c} />
         <div>
-          <span className="chain-tag">Arc</span>
+          <span className="chain-tag">
+            {isEarlyAdopter(c) ? "Oppor.fun · Official" : "Arc"}
+          </span>
           <h3>{c.title}</h3>
           <p>{c.description}</p>
         </div>

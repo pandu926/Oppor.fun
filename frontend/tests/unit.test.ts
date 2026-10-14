@@ -182,3 +182,22 @@ test("connector provider broadcasts only validated transactions and requires a s
     receipt.mock.restore();
   }
 });
+
+test("official campaign identity binds creator, chain, campaign and collection", async () => {
+  const { earlyAdopter, isEarlyAdopter } = await import("../src/lib/official");
+  const c = {
+    ...samples[0],
+    id: earlyAdopter.campaignId,
+    chain_id: earlyAdopter.chainId,
+    creator_wallet: earlyAdopter.creator,
+    reward: { ...samples[0].reward, token_address: earlyAdopter.collection },
+  };
+  assert.equal(isEarlyAdopter(c), true);
+  assert.equal(isEarlyAdopter({ ...c, creator_wallet: wallet }), false);
+  assert.equal(isEarlyAdopter({ ...c, chain_id: "5042002" }), false);
+  assert.equal(isEarlyAdopter({ ...c, id: samples[1].id }), false);
+  assert.equal(
+    isEarlyAdopter({ ...c, reward: { ...c.reward, token_address: wallet } }),
+    false,
+  );
+});

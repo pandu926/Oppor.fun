@@ -169,3 +169,30 @@ fn large_distribution_performance() {
     .unwrap();
     println!("ALLOCATION_PERFORMANCE {report}");
 }
+
+#[test]
+fn fixed_raffle_has_one_badge_per_winner_with_open_registration() {
+    let mut c = campaign("ERC1155", "1000", "RAFFLE", vec![]);
+    c.spec_json["distribution"] = json!({"mode":"RAFFLE","winner_count":1000,"capacity":0,"registration_limit":100000,"allocation_policy":"FIXED_REWARD","reward_per_recipient":"1"});
+    let mut input = c.spec().unwrap();
+    input.start_at = chrono::DateTime::from_timestamp(Utc::now().timestamp() + 60, 0).unwrap();
+    input.cutoff_at = input.start_at + Duration::hours(1);
+    input.review_deadline = input.cutoff_at + Duration::hours(1);
+    input.claim_deadline = input.review_deadline + Duration::hours(24);
+    assert!(input.validate(5042, Utc::now()).is_ok());
+    assert_eq!(input.effective_limit(), 100000);
+    for count in [0, 2, 1500] {
+        let participants: Vec<_> = (1..=count as u64)
+            .map(|i| {
+                let bytes = U256::from(i).to_be_bytes::<32>();
+                (Uuid::new_v4(), Address::from_slice(&bytes[12..]))
+            })
+            .collect();
+        let result = build(&c, B256::ZERO, &participants, Some(B256::repeat_byte(5))).unwrap();
+        assert_eq!(result.allocations.len(), count.min(1000));
+        assert!(result.allocations.iter().all(|a| a.quantity == "1"));
+        assert_eq!(result.total, U256::from(count.min(1000)));
+    }
+    input.reward.amount_base_units = "999".into();
+    assert!(input.validate(5042, Utc::now()).is_err());
+}
