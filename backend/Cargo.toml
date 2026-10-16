@@ -24,7 +24,7 @@ alloy-primitives = { version = "=1.7.3", features = ["serde", "k256"] }
 alloy-sol-types = "=1.7.3"
 anyhow = "1.0"
 axum = { version = "=0.8.9", features = ["macros"] }
-base64 = "0.22"
+base64 = "0.23"
 bytes = "1"
 chrono = { version = "0.4", features = ["serde"] }
 hex = "0.4"
