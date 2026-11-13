@@ -5,7 +5,7 @@ COPY src ./src
 COPY migrations ./migrations
 RUN cargo build --locked --release --bins
 
-FROM debian:bookworm-slim@sha256:7c7b2c966bc9ee8cedfeef67e0e279108992c77681fa595db4a9d65c06ccc587 AS runtime
+FROM debian:bookworm-slim@sha256:734a72b3d6142a71993b4bc580ca01d8ca687f77a2c422d96a961d3376b179bc AS runtime
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates && rm -rf /var/lib/apt/lists/* \
     && groupadd --gid 10001 oppor && useradd --uid 10001 --gid 10001 --no-create-home oppor
 COPY --from=build /app/target/release/oppor-api /usr/local/bin/oppor-api
